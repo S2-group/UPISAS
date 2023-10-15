@@ -1,3 +1,5 @@
+import requests
+
 pull_image_tasks = {}
 
 
@@ -17,3 +19,21 @@ def show_progress(line, progress):
         pull_image_tasks[id] = progress.add_task(f"{id}", total=line['progressDetail']['total'])
     else:
         progress.update(pull_image_tasks[id], completed=line['progressDetail']['current'])
+
+
+def perform_get_request(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 404:
+            raise requests.exceptions.InvalidURL
+        else:
+            return response
+    except requests.exceptions.ConnectionError as e:
+        print(e)
+        print("Please check that the server is reachable and retry.")
+        exit(0)
+    except requests.exceptions.InvalidURL as e:
+        print(e)
+        print("Please check that the endpoint you are trying to reach actually exists.")
+        exit(0)
+

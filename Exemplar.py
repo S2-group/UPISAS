@@ -24,7 +24,7 @@ class Exemplar:
 
     def get_adaptations(self, endpoint_suffix="adaptations"):
         url = '/'.join([self.base_endpoint, endpoint_suffix])
-        potential_adaptations = requests.get(url).json()
+        potential_adaptations = utils.perform_get_request(url).json()
         self.potential_adaptations_schema_all = potential_adaptations["schema_all"]
         print("potential_adaptations schema_all set to: ")
         pp.pprint(self.potential_adaptations_schema_all)
@@ -42,7 +42,8 @@ class Exemplar:
 
     def get_monitor_schema(self, endpoint_suffix="monitor_schema"):
         url = '/'.join([self.base_endpoint, endpoint_suffix])
-        self.monitor_schema = requests.get(url).json()
+        self.monitor_schema = utils.perform_get_request(url).json()
+        # self.monitor_schema = requests.get(url).json()
         print("monitor_schema set to: ")
         pp.pprint(self.monitor_schema)
 
