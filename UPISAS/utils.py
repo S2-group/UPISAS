@@ -1,5 +1,6 @@
 import requests
 import logging
+from jsonschema import validate, exceptions
 pull_image_tasks = {}
 
 
@@ -25,16 +26,15 @@ def perform_get_request(url):
     try:
         logging.info("GET request to " + str(url))
         response = requests.get(url)
-        if response.status_code == 404:
-            raise requests.exceptions.InvalidURL
-        else:
-            return response
+        return response, response.status_code
     except requests.exceptions.ConnectionError as e:
         logging.warning(e)
         logging.warning("Please check that the server is reachable and retry.")
         exit(0)
-    except requests.exceptions.InvalidURL as e:
-        logging.warning(e)
-        logging.warning("Please check that the endpoint you are trying to reach actually exists.")
-        exit(0)
 
+
+def validate_schema(json_instance, json_schema):
+    try:
+        validate(json_instance, json_schema)
+    except exceptions.ValidationError as error:
+        logging.info("Error in validating '" + str(json_schema) + "' schema" + str(error))

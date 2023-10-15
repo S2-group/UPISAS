@@ -1,11 +1,11 @@
-import requests, docker, pprint
-from jsonschema import validate, exceptions
+import docker, pprint
 from rich.progress import Progress
-from UPISAS.utils import show_progress, perform_get_request
+from UPISAS.utils import show_progress, perform_get_request, validate_schema
 import logging
 
 pp = pprint.PrettyPrinter(indent=4)
 logging.getLogger().setLevel(logging.INFO)
+
 
 class Exemplar:
     """
@@ -36,7 +36,11 @@ class Exemplar:
         '''Queries the API of the dockerized exemplar for possible adaptations.
         Places the result in the potential_adaptations dictionaries of the class'''
         url = '/'.join([self.base_endpoint, endpoint_suffix])
-        potential_adaptations = perform_get_request(url).json()
+        response, status_code = perform_get_request(url)
+        if status_code == 404:
+            logging.warning("Please check that the endpoint you are trying to reach actually exists.")
+            exit(0)
+        potential_adaptations = response.json()
         self.potential_adaptations_schema_all = potential_adaptations["schema_all"]
         logging.info("potential_adaptations schema_all set to: ")
         pp.pprint(self.potential_adaptations_schema_all)
@@ -44,18 +48,18 @@ class Exemplar:
         logging.info("potential_adaptations schema_single set to: ")
         pp.pprint(self.potential_adaptations_schema_single)
         self.potential_adaptations_values = potential_adaptations["values"]
-        try:
-            validate(self.potential_adaptations_values, self.potential_adaptations_schema_all)
-        except exceptions.ValidationError as error:
-            logging.info("Error in validating potential_adaptations schema" + str(error))
-        finally:
-           logging.info("potential_adaptations values set to: ")
-           pp.pprint(potential_adaptations["values"])
+        validate_schema(self.potential_adaptations_values, self.potential_adaptations_schema_all)
+        logging.info("potential_adaptations values set to: ")
+        pp.pprint(potential_adaptations["values"])
 
     def get_monitor_schema(self, endpoint_suffix: "API Endpoint" = "monitor_schema"):
         '''Queries the API for a schema describing the monitoring info of the particular exemplar'''
         url = '/'.join([self.base_endpoint, endpoint_suffix])
-        self.monitor_schema = perform_get_request(url).json()
+        response, status_code = perform_get_request(url)
+        if status_code == 404:
+            logging.warning("Please check that the endpoint you are trying to reach actually exists.")
+            exit(0)
+        self.monitor_schema = response.json()
         logging.info("monitor_schema set to: ")
         pp.pprint(self.monitor_schema)
 
