@@ -1,0 +1,76 @@
+openapi: 3.0.3
+info:
+  title: USAS API
+  description: |-
+    _If you're looking for the Swagger 2.0/OAS 2.0 version of Petstore, then click [here](https://editor.swagger.io/?url=https://petstore.swagger.io/v2/swagger.yaml). Alternatively, you can load via the `Edit > Load Petstore OAS 2.0` menu option!_
+    
+    Some useful links:
+    - [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)
+    - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Some useful link here
+  url: http://swagger.io
+servers:
+  - url: https://petstore3.swagger.io/api/v3
+tags:
+  - name: monitor
+    description: Get data
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: execute
+    description: Request a runtime adaptation
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /monitor:
+    get:
+      tags:
+        - monitor
+      summary: Get data from exemplar
+      description: Used for runtime monitoring
+      operationId: monitorFunction
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: number
+                  format: float
+        '400':
+          description: Invalid status value
+  /execute:
+    post:
+      tags:
+        - execute
+      summary: Enact a change
+      description: Used to adapt the exemplar at runtime
+      operationId: executeFunction
+      responses:
+        '200':
+          description: Successful operation
+        '405':
+          description: Invalid input
+      requestBody:
+        description: Apply an adaptation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Execution'
+components:
+  schemas:
+    Execution:
+      type: object
+      additionalProperties:
+        type: string
