@@ -59,11 +59,11 @@ class Exemplar:
             print(e)
             print(f"creating new container '{self.container_name}'")
             self.docker_client.containers.run(
-                self.image_name,detach=True,name=self.container_name,ports={5901:5901,6901:6901})
+                self.image_name, detach=True, name=self.container_name, ports={5901: 5901, 6901: 6901})
 
     def stop(self):
         try:
-            container, container_status  = self.get_container()
+            container, container_status = self.get_container()
             if container_status == "exited":
                 print("container already stopped...")
             else:
@@ -75,7 +75,7 @@ class Exemplar:
 
     def pause(self):
         try:
-            container, container_status  = self.get_container()
+            container, container_status = self.get_container()
             if container_status == "running":
                 print("pausing container...")
                 container.pause()
@@ -89,7 +89,7 @@ class Exemplar:
 
     def unpause(self):
         try:
-            container, container_status  = self.get_container()
+            container, container_status = self.get_container()
             if container_status == "paused":
                 print("unpausing container...")
                 container.unpause()
