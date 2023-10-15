@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import requests
 from jsonschema import validate, exceptions
-from Knowledge import Knowledge
+from UPISAS.Knowledge import Knowledge
 
 
 class Strategy(ABC):
