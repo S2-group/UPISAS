@@ -1,3 +1,5 @@
 .idea
 http-test-server/node_modules
 http-test-server/package-lock.json
+venv
+__pycache__
