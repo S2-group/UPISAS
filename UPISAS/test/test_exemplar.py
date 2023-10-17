@@ -1,10 +1,10 @@
 import unittest
-from UPISAS.Exemplar import Exemplar
+from UPISAS.exemplar import Exemplar
 from subprocess import Popen
 import time
 
 
-class TestExemplar(unittest.TestCase):
+class TestExemplarInit(unittest.TestCase):
     """
     Test cases for the Exemplar class.
     Run by `python -m UPISAS.test.TestExemplar` on the parent folder.

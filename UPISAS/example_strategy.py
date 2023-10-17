@@ -1,4 +1,4 @@
-from UPISAS.Strategy import Strategy
+from UPISAS.strategy import Strategy
 
 
 class ExampleStrategy(Strategy):

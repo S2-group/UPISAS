@@ -1,6 +1,6 @@
 import docker, pprint
 from rich.progress import Progress
-from UPISAS.utils import show_progress, perform_get_request, validate_schema
+from UPISAS import show_progress, perform_get_request, validate_schema
 import logging
 
 pp = pprint.PrettyPrinter(indent=4)

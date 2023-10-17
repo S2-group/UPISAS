@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import requests
-from UPISAS.Knowledge import Knowledge
-from UPISAS.utils import perform_get_request, validate_schema
+from UPISAS.knowledge import Knowledge
+from UPISAS import perform_get_request, validate_schema
 import logging
 
 
