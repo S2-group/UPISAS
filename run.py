@@ -10,4 +10,4 @@ if __name__ == '__main__':
         strategy.monitor()
         if strategy.analyze():
             if strategy.plan():
-                strategy.execute(strategy.knowledge.execute_data)
+                strategy.execute(strategy.knowledge.plan_data)

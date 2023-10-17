@@ -73,6 +73,7 @@ class Exemplar:
             else:
                 logging.info("starting container...")
                 container.start()
+            return True
         except docker.errors.NotFound as e:
             logging.warning(e)
             logging.info(f"creating new container '{self.container_name}'")
@@ -88,6 +89,7 @@ class Exemplar:
             else:
                 logging.info("stopping container...")
                 container.stop()
+            return True
         except docker.errors.NotFound as e:
             logging.warning(e)
             logging.warning("cannot stop container")
@@ -99,10 +101,13 @@ class Exemplar:
             if container_status == "running":
                 logging.info("pausing container...")
                 container.pause()
+                return True
             elif container_status == "paused":
                 logging.warning("container already paused...")
+                return True
             else:
                 logging.warning("cannot pause container since it's not running")
+                return False
         except docker.errors.NotFound as e:
             logging.error(e)
             logging.error("cannot pause container")
@@ -114,10 +119,13 @@ class Exemplar:
             if container_status == "paused":
                 logging.info("unpausing container...")
                 container.unpause()
+                return True
             elif container_status == "running":
                 logging.warning("container already running (why unpause it?)...")
+                return True
             else:
                 logging.warning("cannot unpause container since it's not paused")
+                return False
         except docker.errors.NotFound as e:
             logging.warning(e)
             logging.warning("cannot unpause container")

@@ -19,35 +19,49 @@ class TestExemplarLifecyle(unittest.TestCase):
         self.assertEqual(container_status, "exited")
 
     def tearDown(self):
-        if self.proc is not None:
-            self.proc.kill()
-            self.proc.wait()
         self.exemplar.stop()
+        self.proc.kill()
+        self.proc.wait()
 
-    def test_start(self):
-        self.exemplar.start()
-        # time.sleep(1)
+    def test_start_successfully(self):
+        successful = self.exemplar.start()
+        self.assertTrue(successful)
         _, container_status = self.exemplar.get_container()
         self.assertEqual(container_status, "running")
 
-    def test_stop(self):
+    def test_stop_successfully(self):
         self.exemplar.start()
-        self.exemplar.stop()
+        successful = self.exemplar.stop()
+        self.assertTrue(successful)
         _, container_status = self.exemplar.get_container()
         self.assertEqual(container_status, "exited")
 
-    def test_pause(self):
+    def test_pause_successfully(self):
         self.exemplar.start()
-        self.exemplar.pause()
+        successful = self.exemplar.pause()
+        self.assertTrue(successful)
         _, container_status = self.exemplar.get_container()
         self.assertEqual(container_status, "paused")
 
-    def test_unpause(self):
+    def test_pause_not_successfully(self):
+        successful = self.exemplar.pause()
+        self.assertFalse(successful)
+        _, container_status = self.exemplar.get_container()
+        self.assertEqual(container_status, "exited")
+
+    def test_unpause_successfully(self):
         self.exemplar.start()
         self.exemplar.pause()
-        self.exemplar.unpause()
+        successful = self.exemplar.unpause()
+        self.assertTrue(successful)
         _, container_status = self.exemplar.get_container()
         self.assertEqual(container_status, "running")
+
+    def test_unpause_not_successfully(self):
+        successful = self.exemplar.unpause()
+        self.assertFalse(successful)
+        _, container_status = self.exemplar.get_container()
+        self.assertEqual(container_status, "exited")
 
 
 if __name__ == '__main__':
