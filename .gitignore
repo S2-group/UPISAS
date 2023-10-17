@@ -1,5 +1,5 @@
 .idea
-http-test-server/node_modules
-http-test-server/package-lock.json
+UPISAS/test/http-test-server/node_modules
+UPISAS/test/http-test-server/package-lock.json
 venv
 __pycache__

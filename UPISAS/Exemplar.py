@@ -39,7 +39,7 @@ class Exemplar:
         response, status_code = perform_get_request(url)
         if status_code == 404:
             logging.warning("Please check that the endpoint you are trying to reach actually exists.")
-            exit(0)
+            exit(2)
         potential_adaptations = response.json()
         self.potential_adaptations_schema_all = potential_adaptations["schema_all"]
         logging.info("potential_adaptations schema_all set to: ")
@@ -58,7 +58,7 @@ class Exemplar:
         response, status_code = perform_get_request(url)
         if status_code == 404:
             logging.warning("Please check that the endpoint you are trying to reach actually exists.")
-            exit(0)
+            exit(3)
         self.monitor_schema = response.json()
         logging.info("monitor_schema set to: ")
         pp.pprint(self.monitor_schema)
