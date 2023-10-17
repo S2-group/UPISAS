@@ -30,7 +30,7 @@ def perform_get_request(url):
     except requests.exceptions.ConnectionError as e:
         logging.warning(e)
         logging.warning("Please check that the server is reachable and retry.")
-        exit(0)
+        exit(1)
 
 
 def validate_schema(json_instance, json_schema):
