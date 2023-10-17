@@ -6,8 +6,8 @@ import time
 
 class TestExemplarInit(unittest.TestCase):
     """
-    Test cases for the Exemplar class.
-    Run by `python -m UPISAS.test.TestExemplar` on the parent folder.
+    Test cases for the Exemplar class, __init__ method
+    Run by `python -m UPISAS.test.test_exemplar_init` on the parent folder.
     """
     def setUp(self):
         self.proc = None
