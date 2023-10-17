@@ -5,4 +5,4 @@ from dataclasses import dataclass
 class Knowledge:
     monitored_data: dict
     analysis_data: dict
-    execute_data: dict
+    plan_data: dict
