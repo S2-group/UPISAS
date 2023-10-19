@@ -7,8 +7,8 @@ from UPISAS.exemplar import Exemplar
 
 
 def create_strategy(nodejs_file, base_endpoint, image_name, container_name):
-    proc = Popen(['node', nodejs_file, '-d'])
-    time.sleep(1)
+    proc = create_server_process(nodejs_file)
+
     exemplar = Exemplar(base_endpoint, image_name, container_name, auto_start=True)
     strategy = ExampleStrategy(exemplar)
     return proc, exemplar, strategy

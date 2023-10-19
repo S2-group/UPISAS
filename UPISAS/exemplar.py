@@ -90,12 +90,12 @@ class Exemplar:
     def start(self):
         '''Starts running the docker container made from the given image when constructing this class'''
         try:
-            container, container_status  =  self.exemplar_container, self.exemplar_container.status
+            container_status = self.get_container_status()
             if container_status == "running":
                 logging.warning("container already running...")
             else:
                 logging.info("starting container...")
-                container.start()
+                self.exemplar_container.start()
             return True
         except docker.errors.NotFound as e:
             logging.error(e)
@@ -103,16 +103,17 @@ class Exemplar:
             # self.docker_client.containers.run(
             #     self.image_name, detach=True, name=self.container_name, ports={5901: 5901, 6901: 6901})
 
-    def stop(self):
+    def stop(self, remove=True):
         '''Stops the docker container made from the given image when constructing this class'''
         try:
-            container, container_status  =  self.exemplar_container, self.exemplar_container.status
+            container_status = self.get_container_status()
             if container_status == "exited":
                 logging.warning("container already stopped...")
+                if remove is True: self.exemplar_container.remove()
             else:
                 logging.info("stopping container...")
-                container.stop()
-                container.remove()
+                self.exemplar_container.stop()
+                if remove is True: self.exemplar_container.remove()
             return True
         except docker.errors.NotFound as e:
             logging.warning(e)
@@ -121,10 +122,10 @@ class Exemplar:
     def pause(self):
         '''Pauses a running docker container made from the given image when constructing this class'''
         try:
-            container, container_status  =  self.exemplar_container, self.exemplar_container.status
+            container_status = self.get_container_status()
             if container_status == "running":
                 logging.info("pausing container...")
-                container.pause()
+                self.exemplar_container.pause()
                 return True
             elif container_status == "paused":
                 logging.warning("container already paused...")
@@ -136,13 +137,18 @@ class Exemplar:
             logging.error(e)
             logging.error("cannot pause container")
 
+
+    def get_container_status(self):
+        self.exemplar_container.reload()
+        return self.exemplar_container.status
+
     def unpause(self):
         '''Resumes a paused docker container made from the given image when constructing this class'''
         try:
-            container, container_status  =  self.exemplar_container, self.exemplar_container.status
+            container_status = self.get_container_status()
             if container_status == "paused":
                 logging.info("unpausing container...")
-                container.unpause()
+                self.exemplar_container.unpause()
                 return True
             elif container_status == "running":
                 logging.warning("container already running (why unpause it?)...")
