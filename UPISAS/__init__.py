@@ -22,6 +22,7 @@ def show_progress(line, progress):
         progress.update(pull_image_tasks[id], completed=line['progressDetail']['current'])
 
 
+
 def perform_get_request(url):
     try:
         logging.info("GET request to " + str(url))

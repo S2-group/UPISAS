@@ -2,9 +2,16 @@ import docker, pprint
 from rich.progress import Progress
 from UPISAS import show_progress, perform_get_request, validate_schema
 import logging
-
+from docker.errors import DockerException
 pp = pprint.PrettyPrinter(indent=4)
 logging.getLogger().setLevel(logging.INFO)
+
+# FORMAT = '%(asctime)s %(class)-8s %(message)s'
+# logging.basicConfig(format=FORMAT)
+
+# logger = logging.getLogger()
+# logging = logging.LoggerAdapter(logger, {"class": "Exemplar"})
+# logging.basicConfig()
 
 
 class Exemplar:
@@ -22,13 +29,30 @@ class Exemplar:
         self.potential_adaptations_values = None
         self.monitor_schema = None
         self.base_endpoint = base_endpoint
-        self.image_name = image_name
-        self.container_name = container_name
-        self.docker_client = docker.from_env()
+
+        try:
+            docker_client = docker.from_env()
+            #pull image if needed
+
+            try:
+                docker_client.images.get(image_name)
+                logging.info(f"image '{image_name}' found")
+            except docker.errors.ImageNotFound:
+                logging.info(f"image '{image_name}' not found, pulling it")
+                with Progress() as progress:
+                    for line in docker_client.api.pull(image_name, stream=True, decode=True):
+                        show_progress(line, progress)
+
+            self.exemplar_container = docker_client.containers.create(image_name, detach=True, name=container_name, ports={5901: 5901, 6901: 6901})
+        except DockerException as dexcep:
+            logging.warning("A DockerException occurred, are you sure Docker is running?")
+            logging.error(f"Unexpected {dexcep=}, {type(dexcep)=}")
+            exit(42)
         if auto_start:
             self.start()
         self.get_adaptations()
         self.get_monitor_schema()
+       
 
 
 
@@ -65,9 +89,8 @@ class Exemplar:
 
     def start(self):
         '''Starts running the docker container made from the given image when constructing this class'''
-        self.pull_image_if_needed()
         try:
-            container, container_status  = self.get_container()
+            container, container_status  =  self.exemplar_container, self.exemplar_container.status
             if container_status == "running":
                 logging.warning("container already running...")
             else:
@@ -75,20 +98,21 @@ class Exemplar:
                 container.start()
             return True
         except docker.errors.NotFound as e:
-            logging.warning(e)
-            logging.info(f"creating new container '{self.container_name}'")
-            self.docker_client.containers.run(
-                self.image_name, detach=True, name=self.container_name, ports={5901: 5901, 6901: 6901})
+            logging.error(e)
+            # logging.info(f"creating new container '{self.container_name}'")
+            # self.docker_client.containers.run(
+            #     self.image_name, detach=True, name=self.container_name, ports={5901: 5901, 6901: 6901})
 
     def stop(self):
         '''Stops the docker container made from the given image when constructing this class'''
         try:
-            container, container_status = self.get_container()
+            container, container_status  =  self.exemplar_container, self.exemplar_container.status
             if container_status == "exited":
                 logging.warning("container already stopped...")
             else:
                 logging.info("stopping container...")
                 container.stop()
+                container.remove()
             return True
         except docker.errors.NotFound as e:
             logging.warning(e)
@@ -97,7 +121,7 @@ class Exemplar:
     def pause(self):
         '''Pauses a running docker container made from the given image when constructing this class'''
         try:
-            container, container_status = self.get_container()
+            container, container_status  =  self.exemplar_container, self.exemplar_container.status
             if container_status == "running":
                 logging.info("pausing container...")
                 container.pause()
@@ -115,7 +139,7 @@ class Exemplar:
     def unpause(self):
         '''Resumes a paused docker container made from the given image when constructing this class'''
         try:
-            container, container_status = self.get_container()
+            container, container_status  =  self.exemplar_container, self.exemplar_container.status
             if container_status == "paused":
                 logging.info("unpausing container...")
                 container.unpause()
@@ -129,23 +153,3 @@ class Exemplar:
         except docker.errors.NotFound as e:
             logging.warning(e)
             logging.warning("cannot unpause container")
-
-    def pull_image_if_needed(self):
-        '''If it hasn't been already, downloads the docker image named during construction'''
-        try:
-            self.docker_client.images.get(self.image_name)
-            logging.info(f"image '{self.image_name}' found")
-        except docker.errors.ImageNotFound:
-            logging.info(f"image '{self.image_name}' not found, pulling it")
-            with Progress() as progress:
-                for line in self.docker_client.api.pull(self.image_name, stream=True, decode=True):
-                    show_progress(line, progress)
-
-    def get_container(self):
-        '''Handle of the container'''
-        try:
-            container = self.docker_client.containers.get(self.container_name)
-            logging.info(f"container '{container.name}' found with status '{container.attrs['State']['Status']}'")
-            return container, container.attrs['State']['Status']
-        except docker.errors.NotFound:
-            raise docker.errors.NotFound(f"container '{self.container_name}' not found")

@@ -4,6 +4,11 @@ var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+
+app.get('/', function (req, res) {
+    res.send("alive")
+});
+
 app.get('/adaptations', function (req, res) {
     res.send(JSON.stringify({
         schema_all: {

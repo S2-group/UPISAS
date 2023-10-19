@@ -11,6 +11,10 @@ app.get('/monitor', function (req, res) {
     }));
 });
 
+app.get('/', function (req, res) {
+    res.send("alive")
+});
+
 app.post('/execute', function (req, res) {
     if (req.body) {
         console.log("Got value changes: o1:" + req.body.o1 + " - o2:" + req.body.o2)

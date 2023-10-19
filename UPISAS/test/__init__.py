@@ -21,7 +21,10 @@ def create_server_process(nodejs_file):
         print("trying to connect...")
         try:
             _, status_code = perform_get_request("http://localhost:3000")
-            break
-        except ConnectionRefusedError:
+            print(status_code)
+            if status_code < 400:
+                break
+        except:
+            print('exceppttt')
             pass
     return proc
