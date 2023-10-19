@@ -1,7 +1,6 @@
 import unittest
+from UPISAS.test import create_server_process
 from UPISAS.exemplar import Exemplar
-from subprocess import Popen
-import time
 
 
 class TestExemplarInit(unittest.TestCase):
@@ -18,8 +17,7 @@ class TestExemplarInit(unittest.TestCase):
             self.proc.wait()
 
     def test_init_successfully(self):
-        self.proc = Popen(['node', 'UPISAS/test/http-test-server/app.js', '-d'])
-        time.sleep(1)
+        self.proc = create_server_process('UPISAS/test/http-test-server/app.js')
         exemplar = Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", auto_start=False)
         self.assertIsNotNone(exemplar.monitor_schema)
         self.assertIsNotNone(exemplar.potential_adaptations_schema_all)
@@ -34,16 +32,14 @@ class TestExemplarInit(unittest.TestCase):
 
     def test_init_endpoint_adaptations_not_present(self):
         with self.assertRaises(SystemExit) as cm:
-            self.proc = Popen(['node', 'UPISAS/test/http-test-server/app-no-endpoints.js', '-d'])
-            time.sleep(1)
+            self.proc = create_server_process('UPISAS/test/http-test-server/app-no-endpoints.js')
             Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", auto_start=False)
         print("test_init_endpoint_not_existing: " + str(cm.exception.code))
         self.assertEqual(cm.exception.code, 2)
 
     def test_init_endpoint_monitor_schema_not_present(self):
         with self.assertRaises(SystemExit) as cm:
-            self.proc = Popen(['node', 'UPISAS/test/http-test-server/app-only-adaptations-endpoint.js', '-d'])
-            time.sleep(1)
+            self.proc = create_server_process('UPISAS/test/http-test-server/app-only-adaptations-endpoint.js')
             Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", auto_start=False)
         self.assertEqual(cm.exception.code, 3)
 
