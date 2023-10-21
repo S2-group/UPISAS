@@ -7,6 +7,9 @@ class TestStrategy(unittest.TestCase):
     Test cases for the Strategy class, monitor and execute methods
     Run by `python -m UPISAS.test.test_strategy` on the parent folder.
     """
+
+    swim_docker_kwargs = {"ports" : {5901: 5901, 6901: 6901}}
+
     def setUp(self):
         self.proc = None
         self.exemplar = None
@@ -19,33 +22,33 @@ class TestStrategy(unittest.TestCase):
 
     def test_monitor_successfully(self):
         self.proc, self.exemplar, strategy = create_strategy("UPISAS/test/http-test-server/app.js",
-                                                             "http://localhost:3000", "gabrielmoreno/swim", "swim")
+                                                             "http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs)
         successful = strategy.monitor()
         self.assertTrue(successful)
         self.assertNotEqual(strategy.knowledge.monitored_data, dict())
 
     def test_monitor_endpoint_not_present(self):
         self.proc, self.exemplar, strategy = create_strategy("UPISAS/test/http-test-server/app-no-m-e-endpoints.js",
-                                                             "http://localhost:3000","gabrielmoreno/swim", "swim")
+                                                             "http://localhost:3000","gabrielmoreno/swim", "swim", self.swim_docker_kwargs)
         successful = strategy.monitor()
         self.assertFalse(successful)
         self.assertDictEqual(strategy.knowledge.monitored_data, dict())
 
     def test_execute_successfully(self):
         self.proc, self.exemplar, strategy = create_strategy("UPISAS/test/http-test-server/app.js",
-                                                             "http://localhost:3000", "gabrielmoreno/swim", "swim")
+                                                             "http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs)
         successful = strategy.execute({"o1": 2, "o2": 5})
         self.assertTrue(successful)
 
     def test_execute_endpoint_not_present(self):
         self.proc, self.exemplar, strategy = create_strategy("UPISAS/test/http-test-server/app-no-m-e-endpoints.js",
-                                                              "http://localhost:3000","gabrielmoreno/swim", "swim")
+                                                              "http://localhost:3000","gabrielmoreno/swim", "swim", self.swim_docker_kwargs)
         successful = strategy.execute({"o1": 2, "o2": 5})
         self.assertFalse(successful)
 
     def test_analyze_successfully(self):
         self.proc, self.exemplar, strategy = create_strategy("UPISAS/test/http-test-server/app.js",
-                                                             "http://localhost:3000", "gabrielmoreno/swim", "swim")
+                                                             "http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs)
         strategy.monitor()
         successful = strategy.analyze()
         self.assertTrue(successful)
@@ -53,7 +56,7 @@ class TestStrategy(unittest.TestCase):
 
     def test_plan_successfully(self):
         self.proc, self.exemplar, strategy = create_strategy("UPISAS/test/http-test-server/app.js",
-                                                             "http://localhost:3000", "gabrielmoreno/swim", "swim")
+                                                             "http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs)
         strategy.monitor()
         strategy.analyze()
         successful = strategy.plan()

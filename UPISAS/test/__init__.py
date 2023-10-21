@@ -6,10 +6,10 @@ from UPISAS.example_strategy import ExampleStrategy
 from UPISAS.exemplar import Exemplar
 
 
-def create_strategy(nodejs_file, base_endpoint, image_name, container_name):
+def create_strategy(nodejs_file, base_endpoint, image_name, container_name, docker_kwargs):
     proc = create_server_process(nodejs_file)
 
-    exemplar = Exemplar(base_endpoint, image_name, container_name, auto_start=True)
+    exemplar = Exemplar(base_endpoint, image_name, container_name, docker_kwargs, auto_start=True)
     strategy = ExampleStrategy(exemplar)
     return proc, exemplar, strategy
 

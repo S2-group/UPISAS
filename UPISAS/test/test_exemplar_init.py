@@ -10,6 +10,7 @@ class TestExemplarInit(unittest.TestCase):
     """
 
     incomplete_constructor = False
+    swim_docker_kwargs = {"ports" : {5901: 5901, 6901: 6901}}
     def setUp(self):
         self.proc = None
 
@@ -24,7 +25,8 @@ class TestExemplarInit(unittest.TestCase):
     def test_init_successfully(self):
         self.incomplete_constructor = False
         self.proc = create_server_process('UPISAS/test/http-test-server/app.js')
-        exemplar = Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swiminitsuccessfully", auto_start=True)
+        
+        exemplar = Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs, auto_start=True)
         self.assertIsNotNone(exemplar.monitor_schema)
         self.assertIsNotNone(exemplar.potential_adaptations_schema_all)
         self.assertIsNotNone(exemplar.potential_adaptations_schema_single)
@@ -34,7 +36,7 @@ class TestExemplarInit(unittest.TestCase):
     def test_init_server_not_up(self):
         self.incomplete_constructor = True
         with self.assertRaises(SystemExit) as cm:
-            Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", auto_start=False)
+            Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs, auto_start=False)
         self.assertEqual(cm.exception.code, 1)
 
 
@@ -42,7 +44,7 @@ class TestExemplarInit(unittest.TestCase):
         self.incomplete_constructor = True
         with self.assertRaises(SystemExit) as cm:
             self.proc = create_server_process('UPISAS/test/http-test-server/app-no-endpoints.js')
-            Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", auto_start=False)
+            Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs, auto_start=False)
         print("test_init_endpoint_not_existing: " + str(cm.exception.code))
         self.assertEqual(cm.exception.code, 2)
         
@@ -51,7 +53,7 @@ class TestExemplarInit(unittest.TestCase):
         self.incomplete_constructor = True
         with self.assertRaises(SystemExit) as cm:
             self.proc = create_server_process('UPISAS/test/http-test-server/app-only-adaptations-endpoint.js')
-            Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", auto_start=False)
+            Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs, auto_start=False)
         self.assertEqual(cm.exception.code, 3)
         
 

@@ -10,10 +10,14 @@ class TestExemplarLifecyle(unittest.TestCase):
     Test cases for the Exemplar class, lifecycle methods (start, stop, pause, unpause)
     Run by `python -m UPISAS.test.test_exemplar_lifecycle` on the parent folder.
     """
+
+
+    swim_docker_kwargs = {"ports" : {5901: 5901, 6901: 6901}}
+
     def setUp(self):
         self.proc = create_server_process('UPISAS/test/http-test-server/app.js')
         time.sleep(1)
-        self.exemplar = Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", auto_start=False)
+        self.exemplar = Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs, auto_start=False)
 
         # this is just to make sure that the container is not running (e.g. from a previous test execution)
         #self.exemplar.stop()
