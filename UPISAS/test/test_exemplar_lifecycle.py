@@ -1,6 +1,5 @@
 import unittest
 from UPISAS.exemplar import Exemplar
-from subprocess import Popen
 import time
 from UPISAS.test import create_server_process
 
@@ -19,16 +18,10 @@ class TestExemplarLifecyle(unittest.TestCase):
         time.sleep(1)
         self.exemplar = Exemplar("http://localhost:3000", "gabrielmoreno/swim", "swim", self.swim_docker_kwargs, auto_start=False)
 
-        # this is just to make sure that the container is not running (e.g. from a previous test execution)
-        #self.exemplar.stop()
-        # container, container_status  =  self.exemplar_container, self.get_container_status()
-        # self.assertEqual(container_status, "exited")
-
     def tearDown(self):
         self.exemplar.stop()
         self.proc.kill()
         self.proc.wait()
-
 
     def test_create_successfully(self):
         self.assertEqual(self.exemplar.get_container_status(), "created")

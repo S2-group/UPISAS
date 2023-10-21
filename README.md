@@ -5,9 +5,19 @@ Unified Python interface for self-adaptive system exemplars.
 Tested with Python 3.9.12
 
 ### Installation
-  
-> pip install -r requirements.txt
-
+In a terminal, navigate to the parent folder of the project and issue:
+```
+pip install -r requirements.txt
+```
+### Run unit tests
+In a terminal, navigate to the parent folder of the project and issue:
+```
+python -m UPISAS.test.test_exemplar_init
+python -m UPISAS.test.test_exemplar_lifecycle
+python -m UPISAS.test.test_strategy
+```
 ### Run
-
-> python run.py
+In a terminal, navigate to the parent folder of the project and issue:
+```
+python run.py
+```
