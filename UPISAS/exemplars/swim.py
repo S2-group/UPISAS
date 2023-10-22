@@ -1,13 +1,8 @@
-import docker, pprint
-from rich.progress import Progress
-from UPISAS import show_progress, perform_get_request, validate_schema
+import pprint, time
 from UPISAS.exemplar import Exemplar
 import logging
-from docker.errors import DockerException
 pp = pprint.PrettyPrinter(indent=4)
 logging.getLogger().setLevel(logging.INFO)
-import time
-
 
 
 class SWIM(Exemplar):
@@ -33,5 +28,4 @@ class SWIM(Exemplar):
         time.sleep(10)
         input("proceed to ask for stuff programmatically")
 
-        #self.get_adaptations()
         self.get_monitor_schema()

@@ -3,19 +3,11 @@ from rich.progress import Progress
 from UPISAS import show_progress, perform_get_request, validate_schema
 import logging
 from docker.errors import DockerException
-from abc import ABC, abstractmethod
 pp = pprint.PrettyPrinter(indent=4)
 logging.getLogger().setLevel(logging.INFO)
 
-# FORMAT = '%(asctime)s %(class)-8s %(message)s'
-# logging.basicConfig(format=FORMAT)
 
-# logger = logging.getLogger()
-# logging = logging.LoggerAdapter(logger, {"class": "Exemplar"})
-# logging.basicConfig()
-
-
-class Exemplar(ABC):
+class Exemplar:
     """
     A class which encapsulates a self-adaptive exemplar run in a docker container.
     """
@@ -34,8 +26,6 @@ class Exemplar(ABC):
         image_name = docker_kwargs["image"]
         try:
             docker_client = docker.from_env()
-            #pull image if needed
-
             try:
                 docker_client.images.get(image_name)
                 logging.info(f"image '{image_name}' found")
@@ -44,23 +34,14 @@ class Exemplar(ABC):
                 with Progress() as progress:
                     for line in docker_client.api.pull(image_name, stream=True, decode=True):
                         show_progress(line, progress)
-
             docker_kwargs["detach"] = True
-
-
             self.exemplar_container = docker_client.containers.create(**docker_kwargs)
-            #ports={5901: 5901, 6901: 6901}
         except DockerException as dexcep:
             logging.warning("A DockerException occurred, are you sure Docker is running?")
             logging.error(dexcep)
-            # logging.error(f"Unexpected {dexcep=}, {type(dexcep)=}")
             exit(42)
         if auto_start:
             self.start_container()
-
-       
-
-
 
     def get_adaptations(self, endpoint_suffix: "API Endpoint" = "adaptations"):
         '''Queries the API of the dockerized exemplar for possible adaptations.
@@ -143,11 +124,6 @@ class Exemplar(ABC):
             logging.error(e)
             logging.error("cannot pause container")
 
-
-    def get_container_status(self):
-        self.exemplar_container.reload()
-        return self.exemplar_container.status
-
     def unpause_container(self):
         '''Resumes a paused docker container made from the given image when constructing this class'''
         try:
@@ -165,3 +141,7 @@ class Exemplar(ABC):
         except docker.errors.NotFound as e:
             logging.warning(e)
             logging.warning("cannot unpause container")
+
+    def get_container_status(self):
+        self.exemplar_container.reload()
+        return self.exemplar_container.status
