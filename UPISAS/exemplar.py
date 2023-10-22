@@ -1,13 +1,15 @@
-import docker, pprint
+import docker
+from abc import ABC
 from rich.progress import Progress
-from UPISAS import show_progress, perform_get_request, validate_schema
+from UPISAS import show_progress
 import logging
 from docker.errors import DockerException
-pp = pprint.PrettyPrinter(indent=4)
+from UPISAS.exceptions import DockerImageNotFoundOnDockerHub, DockerDeamonNotRunning
+
 logging.getLogger().setLevel(logging.INFO)
 
 
-class Exemplar:
+class Exemplar(ABC):
     """
     A class which encapsulates a self-adaptive exemplar run in a docker container.
     """
@@ -20,59 +22,34 @@ class Exemplar:
         self.potential_adaptations_schema_all = None
         self.potential_adaptations_schema_single = None
         self.potential_adaptations_values = None
-        self.monitor_schema = None
         self.base_endpoint = base_endpoint
 
         image_name = docker_kwargs["image"]
+        image_owner = image_name.split("/")[0]
         try:
             docker_client = docker.from_env()
             try:
                 docker_client.images.get(image_name)
-                logging.info(f"image '{image_name}' found")
+                logging.info(f"image '{image_name}' found locally")
             except docker.errors.ImageNotFound:
-                logging.info(f"image '{image_name}' not found, pulling it")
-                with Progress() as progress:
-                    for line in docker_client.api.pull(image_name, stream=True, decode=True):
-                        show_progress(line, progress)
+                logging.info(f"image '{image_name}' not found locally")
+                images_from_owner = docker_client.images.search(image_owner)
+                if image_name in [i["name"] for i in images_from_owner]:
+                    logging.info(f"image '{image_name}' found on DockerHub, pulling it")
+                    with Progress() as progress:
+                        for line in docker_client.api.pull(image_name, stream=True, decode=True):
+                            show_progress(line, progress)
+                else:
+                    logging.error(f"image '{image_name}' not found on DockerHub, exiting")
+                    raise DockerImageNotFoundOnDockerHub()
             docker_kwargs["detach"] = True
             self.exemplar_container = docker_client.containers.create(**docker_kwargs)
-        except DockerException as dexcep:
-            logging.warning("A DockerException occurred, are you sure Docker is running?")
-            logging.error(dexcep)
-            exit(42)
+        except DockerException as e:
+            logging.warning("A DockerException occurred, are you sure the Docker deamon is running?")
+            logging.error(e)
+            raise DockerDeamonNotRunning()
         if auto_start:
             self.start_container()
-
-    def get_adaptations(self, endpoint_suffix: "API Endpoint" = "adaptations"):
-        '''Queries the API of the dockerized exemplar for possible adaptations.
-        Places the result in the potential_adaptations dictionaries of the class'''
-        url = '/'.join([self.base_endpoint, endpoint_suffix])
-        response, status_code = perform_get_request(url)
-        if status_code == 404:
-            logging.warning("Please check that the endpoint you are trying to reach actually exists.")
-            exit(2)
-        potential_adaptations = response.json()
-        self.potential_adaptations_schema_all = potential_adaptations["schema_all"]
-        logging.info("potential_adaptations schema_all set to: ")
-        pp.pprint(self.potential_adaptations_schema_all)
-        self.potential_adaptations_schema_single = potential_adaptations["schema_single"]
-        logging.info("potential_adaptations schema_single set to: ")
-        pp.pprint(self.potential_adaptations_schema_single)
-        self.potential_adaptations_values = potential_adaptations["values"]
-        validate_schema(self.potential_adaptations_values, self.potential_adaptations_schema_all)
-        logging.info("potential_adaptations values set to: ")
-        pp.pprint(potential_adaptations["values"])
-
-    def get_monitor_schema(self, endpoint_suffix: "API Endpoint" = "monitor_schema"):
-        '''Queries the API for a schema describing the monitoring info of the particular exemplar'''
-        url = '/'.join([self.base_endpoint, endpoint_suffix])
-        response, status_code = perform_get_request(url)
-        if status_code == 404:
-            logging.warning("Please check that the endpoint you are trying to reach actually exists.")
-            exit(3)
-        self.monitor_schema = response.json()
-        logging.info("monitor_schema set to: ")
-        pp.pprint(self.monitor_schema)
 
     def start_container(self):
         '''Starts running the docker container made from the given image when constructing this class'''
@@ -83,12 +60,10 @@ class Exemplar:
             else:
                 logging.info("starting container...")
                 self.exemplar_container.start()
+                # self.exemplar_container.exec_run(cmd = ' sh -c "cd /usr/src/app" ', detach=True)
             return True
         except docker.errors.NotFound as e:
             logging.error(e)
-            # logging.info(f"creating new container '{self.container_name}'")
-            # self.docker_client.containers.run(
-            #     self.image_name, detach=True, name=self.container_name, ports={5901: 5901, 6901: 6901})
 
     def stop_container(self, remove=True):
         '''Stops the docker container made from the given image when constructing this class'''
@@ -96,11 +71,15 @@ class Exemplar:
             container_status = self.get_container_status()
             if container_status == "exited":
                 logging.warning("container already stopped...")
-                if remove is True: self.exemplar_container.remove()
+                if remove:
+                    self.exemplar_container.remove()
+                    self.exemplar_container = None
             else:
                 logging.info("stopping container...")
                 self.exemplar_container.stop()
-                if remove is True: self.exemplar_container.remove()
+                if remove:
+                    self.exemplar_container.remove()
+                    self.exemplar_container = None
             return True
         except docker.errors.NotFound as e:
             logging.warning(e)
@@ -143,5 +122,7 @@ class Exemplar:
             logging.warning("cannot unpause container")
 
     def get_container_status(self):
-        self.exemplar_container.reload()
-        return self.exemplar_container.status
+        if self.exemplar_container:
+            self.exemplar_container.reload()
+            return self.exemplar_container.status
+        return "removed"

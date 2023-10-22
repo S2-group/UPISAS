@@ -1,0 +1,11 @@
+{
+  "name": "upisas-demo-managed-system",
+  "version": "1.0.0",
+  "description": "Simple demo application to test the UPISAS framework",
+  "scripts": {},
+  "author": "Ilias Gerostathopoulos",
+  "license": "Apache 2.0",
+  "dependencies": {
+    "express": "^4.15.0"
+  }
+}

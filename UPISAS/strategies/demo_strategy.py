@@ -1,7 +1,7 @@
 from UPISAS.strategy import Strategy
 
 
-class ExampleStrategy(Strategy):
+class DemoStrategy(Strategy):
 
     def analyze(self):
         data = self.knowledge.monitored_data

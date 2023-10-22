@@ -1,14 +1,14 @@
 import requests
 import logging
 from jsonschema import validate, exceptions
+
+from UPISAS.exceptions import ServerNotReachable
+
 pull_image_tasks = {}
 
 
 def show_progress(line, progress):
-    """
-    Show task progress (red for download, green for extract).
-    Used when pulling images.
-    """
+    """ Show task progress (red for download, green for extract). Used when pulling images."""
     if line['status'] == 'Downloading':
         id = f'[red][Download {line["id"]}]'
     elif line['status'] == 'Extracting':
@@ -22,7 +22,6 @@ def show_progress(line, progress):
         progress.update(pull_image_tasks[id], completed=line['progressDetail']['current'])
 
 
-
 def perform_get_request(url):
     try:
         logging.info("GET request to " + str(url))
@@ -31,7 +30,7 @@ def perform_get_request(url):
     except requests.exceptions.ConnectionError as e:
         logging.warning(e)
         logging.warning("Please check that the server is reachable and retry.")
-        exit(1)
+        raise ServerNotReachable()
 
 
 def validate_schema(json_instance, json_schema):

@@ -1,18 +1,20 @@
 var express = require('express');
-var bodyParser = require('body-parser')
+
+// Constants
+const PORT = 3000;
+const HOST = '0.0.0.0';
+
 var app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+
+app.get('/', function (req, res) {
+    res.send("alive")
+});
 
 app.get('/monitor', function (req, res) {
     res.send(JSON.stringify({
         i1: 1,
         i2: "42"
     }));
-});
-
-app.get('/', function (req, res) {
-    res.send("alive")
 });
 
 app.post('/execute', function (req, res) {
@@ -22,49 +24,6 @@ app.post('/execute', function (req, res) {
         o2 = req.body.o2 || o2
     }
     res.send("ok")
-});
-
-app.get('/adaptations', function (req, res) {
-    res.send(JSON.stringify({
-        schema_all: {
-            type: "object",
-            properties: {
-                o1: {
-                    type: "array",
-                    items: {
-                        type: "integer",
-                        format: "int64",
-                        example: 10
-                    }
-                },
-                o2: {
-                    type: "array",
-                    items: {
-                        type: "integer",
-                        format: "int64",
-                        example: 10                    }
-                },
-            }
-        },
-        schema_single: {
-            type: "object",
-            properties: {
-                o1: {
-                    type: "integer",
-                    format: "int64",
-                    example: 10
-                },
-                o2: {
-                    type: "integer",
-                    format: "int64",
-                    example: 10                },
-            }
-        },
-        values: {
-            o1: [10, 12, 14],
-            o2: [5, 15, 20]
-        }
-    }));
 });
 
 app.get('/monitor_schema', function (req, res) {
@@ -84,6 +43,52 @@ app.get('/monitor_schema', function (req, res) {
     }));
 });
 
-app.listen(3000, function () {
-    console.log('USAS HTTP test app listening on port 3000!');
+app.get('/execute_schema', function (req, res) {
+    res.send(JSON.stringify({
+        type: "object",
+        properties: {
+            o1: {
+                type: "integer",
+                format: "int64",
+                example: 10
+            },
+            o2: {
+                type: "integer",
+                format: "int64",
+                example: 10                },
+        }
+    }));
+});
+
+app.get('/possible_adaptations', function (req, res) {
+    res.send(JSON.stringify({
+        schema: {
+            type: "object",
+            properties: {
+                o1: {
+                    type: "array",
+                    items: {
+                        type: "integer",
+                        format: "int64",
+                        example: 10
+                    }
+                },
+                o2: {
+                    type: "array",
+                    items: {
+                        type: "integer",
+                        format: "int64",
+                        example: 10                    }
+                },
+            }
+        },
+        values: {
+            o1: [10, 12, 14],
+            o2: [5, 15, 20]
+        }
+    }));
+});
+
+app.listen(PORT, HOST, () => {
+    console.log(`USAS HTTP test app running!! on http://${HOST}:${PORT}`);
 });

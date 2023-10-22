@@ -1,4 +1,4 @@
-This is a small node.js based server used to test the basic functionality of UPISAS.
+This is a small node.js based server used to test and demonstrate the basic functionality of UPISAS.
 
 Steps to use it: 
 1. Get Node.js
