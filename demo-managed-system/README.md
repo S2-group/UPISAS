@@ -6,3 +6,7 @@ Steps to use it:
 3. Start the server with ``node app.js`` 
 
 Then open a new terminal tab or window and run UPISAS.
+
+If you do any changes to the managed system, then run 
+1. `docker build . -t <dockerhub username>/upisas-demo-managed-system`
+2. Update the "image" in DemoExemplar to point to `<dockerhub username>/upisas-demo-managed-system`
