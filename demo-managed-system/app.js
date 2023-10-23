@@ -60,31 +60,55 @@ app.get('/execute_schema', function (req, res) {
     }));
 });
 
-app.get('/possible_adaptations', function (req, res) {
+app.get('/adaptation_options', function (req, res) {
     res.send(JSON.stringify({
-        schema: {
-            type: "object",
-            properties: {
-                o1: {
-                    type: "array",
-                    items: {
-                        type: "integer",
-                        format: "int64",
-                        example: 10
-                    }
-                },
-                o2: {
-                    type: "array",
-                    items: {
-                        type: "integer",
-                        format: "int64",
-                        example: 10                    }
-                },
-            }
+        o1: {
+            "values": [10, 12, 14],
+            "type": "discrete"
         },
-        values: {
-            o1: [10, 12, 14],
-            o2: [5, 15, 20]
+        o2: {
+            "values": [5, 15, 20],
+            "type": "discrete"
+        }
+    }));
+});
+
+app.get('/adaptation_options_schema', function (req, res) {
+    res.send(JSON.stringify({
+        type: "object",
+        properties: {
+            o1: {
+                "type": "object",
+                "properties": {
+                    "values": {
+                        "type": "array",
+                        "items": {
+                            "type": "number",
+                            "format": "integer",
+                            "example": 10
+                        }
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                }
+            },
+            o2: {
+                "type": "object",
+                "properties": {
+                    "values": {
+                        "type": "array",
+                        "items": {
+                            "type": "number",
+                            "format": "integer",
+                            "example": 10
+                        }
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                }
+            }
         }
     }));
 });

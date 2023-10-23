@@ -47,6 +47,11 @@ class Strategy(ABC):
             return False
         return True
 
+    def get_adaptation_options(self, endpoint_suffix: "API Endpoint" = "adaptation_options"):
+        self.knowledge.adaptation_options = self._get_schema(endpoint_suffix)
+        logging.info("adaptation_options set to: ")
+        pp.pprint(self.knowledge.adaptation_options)
+
     def get_monitor_schema(self, endpoint_suffix = "monitor_schema"):
         '''Queries the API for a schema describing the monitoring info of the particular exemplar'''
         self.knowledge.monitor_schema = self._get_schema(endpoint_suffix)
@@ -58,17 +63,10 @@ class Strategy(ABC):
         logging.info("execute_schema set to: ")
         pp.pprint(self.knowledge.execute_schema)
 
-    def get_possible_adaptations(self, endpoint_suffix: "API Endpoint" = "possible_adaptations"):
-        '''Queries the API of the dockerized exemplar for possible adaptations.
-        Places the result in the potential_adaptations dictionaries of the class'''
-        possible_adaptations = self._get_schema(endpoint_suffix)
-        self.knowledge.possible_adaptations_schema = possible_adaptations["schema"]
-        logging.info("potential_adaptations schema_all set to: ")
-        pp.pprint(self.knowledge.possible_adaptations_schema)
-        self.knowledge.possible_adaptations_values = possible_adaptations["values"]
-        validate_schema(self.knowledge.possible_adaptations_values, self.knowledge.possible_adaptations_schema)
-        logging.info("potential_adaptations values set to: ")
-        pp.pprint(self.knowledge.possible_adaptations_values)
+    def get_adaptation_options_schema(self, endpoint_suffix: "API Endpoint" = "adaptation_options_schema"):
+        self.knowledge.adaptation_options_schema = self._get_schema(endpoint_suffix)
+        logging.info("adaptation_options_schema set to: ")
+        pp.pprint(self.knowledge.adaptation_options_schema)
 
     def _get_schema(self, endpoint_suffix: "API Endpoint"):
         '''Queries the API for a schema describing the execution info of the particular exemplar'''
@@ -78,7 +76,6 @@ class Strategy(ABC):
             logging.warning("Please check that the endpoint you are trying to reach actually exists.")
             raise EndpointNotReachable()
         return response.json()
-
 
     @abstractmethod
     def analyze(self):

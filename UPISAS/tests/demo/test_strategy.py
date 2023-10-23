@@ -49,18 +49,29 @@ class TestStrategy(unittest.TestCase):
         with self.assertRaises(EndpointNotReachable):
             self.strategy.get_execute_schema()
 
-    def test_possible_adaptations_endpoint_reachable(self):
+    def test_adaptation_options_schema_endpoint_reachable(self):
         self._start_server_and_wait_until_is_up()
         self.strategy = DemoStrategy(self.exemplar)
-        self.strategy.get_possible_adaptations()
-        self.assertIsNotNone(self.strategy.knowledge.possible_adaptations_schema)
-        self.assertIsNotNone(self.strategy.knowledge.possible_adaptations_values)
+        self.strategy.get_adaptation_options_schema()
+        self.assertIsNotNone(self.strategy.knowledge.adaptations_options_schema)
 
-    def test_possible_adaptations_endpoint_not_reachable(self):
+    def test_adaptation_options_schema_endpoint_not_reachable(self):
         self._start_server_and_wait_until_is_up(app="app-no-endpoints.js")
         self.strategy = DemoStrategy(self.exemplar)
         with self.assertRaises(EndpointNotReachable):
-            self.strategy.get_possible_adaptations()
+            self.strategy.get_adaptation_options_schema()
+
+    def test_adaptation_options_endpoint_reachable(self):
+        self._start_server_and_wait_until_is_up()
+        self.strategy = DemoStrategy(self.exemplar)
+        self.strategy.get_adaptation_options()
+        self.assertIsNotNone(self.strategy.knowledge.adaptations_options)
+
+    def test_adaptation_options_endpoint_not_reachable(self):
+        self._start_server_and_wait_until_is_up(app="app-no-endpoints.js")
+        self.strategy = DemoStrategy(self.exemplar)
+        with self.assertRaises(EndpointNotReachable):
+            self.strategy.get_adaptation_options()
 
     def test_monitor_endpoint_reachable(self):
         self._start_server_and_wait_until_is_up()
@@ -106,7 +117,7 @@ class TestStrategy(unittest.TestCase):
         self.assertNotEqual(self.strategy.knowledge.plan_data, dict())
 
     def _start_server_and_wait_until_is_up(self, base_endpoint="http://localhost:3000", app="app.js"):
-        self.exemplar.exemplar_container.exec_run(cmd = f' sh -c "cd /usr/src/app && node {app}" ', detach=True)
+        self.exemplar.start_run(app)
         while True:
             time.sleep(1)
             print("trying to connect...")
