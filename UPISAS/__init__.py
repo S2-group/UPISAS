@@ -1,6 +1,6 @@
+import jsonschema
 import requests
 import logging
-from jsonschema import validate, exceptions
 
 from UPISAS.exceptions import ServerNotReachable
 
@@ -35,6 +35,18 @@ def perform_get_request(url):
 
 def validate_schema(json_instance, json_schema):
     try:
-        validate(json_instance, json_schema)
-    except exceptions.ValidationError as error:
-        logging.info("Error in validating '" + str(json_schema) + "' schema" + str(error))
+        incomplete_warning_message = "No complete JSON Schema provided for validation"
+        if json_schema and "type" in json_schema and "properties" in json_schema:
+            json_instance_keys = sorted(json_instance.keys())
+            json_schema_keys = sorted(json_schema["properties"].keys())
+            if json_instance_keys == json_schema_keys:
+                jsonschema.validate(json_instance, json_schema)
+                logging.info("JSON Schema validated")
+            else:
+                logging.warning(incomplete_warning_message)
+        else:
+            logging.warning(incomplete_warning_message)
+    except jsonschema.exceptions.ValidationError as error:
+        logging.error(f"ValidationError in validating JSON Schema: {error}")
+    except jsonschema.exceptions.SchemaError as error:
+        logging.error(f"SchemaError in validating JSON Schema: {error}")

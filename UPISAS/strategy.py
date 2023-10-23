@@ -48,7 +48,10 @@ class Strategy(ABC):
         return True
 
     def get_adaptation_options(self, endpoint_suffix: "API Endpoint" = "adaptation_options"):
+        logging.info("before getting the adaptation_options, we get their schema")
+        self.get_adaptation_options_schema()
         self.knowledge.adaptation_options = self._get_schema(endpoint_suffix)
+        validate_schema(self.knowledge.adaptation_options, self.knowledge.adaptation_options_schema)
         logging.info("adaptation_options set to: ")
         pp.pprint(self.knowledge.adaptation_options)
 
