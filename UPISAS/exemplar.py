@@ -19,11 +19,7 @@ class Exemplar(ABC):
                  auto_start: "Whether to immediately start the container after creation" =False,
                  ):
         '''Create an instance of the Exemplar class'''
-        self.potential_adaptations_schema_all = None
-        self.potential_adaptations_schema_single = None
-        self.potential_adaptations_values = None
         self.base_endpoint = base_endpoint
-
         image_name = docker_kwargs["image"]
         image_owner = image_name.split("/")[0]
         try:
@@ -60,7 +56,6 @@ class Exemplar(ABC):
             else:
                 logging.info("starting container...")
                 self.exemplar_container.start()
-                # self.exemplar_container.exec_run(cmd = ' sh -c "cd /usr/src/app" ', detach=True)
             return True
         except docker.errors.NotFound as e:
             logging.error(e)
