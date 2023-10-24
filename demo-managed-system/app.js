@@ -4,6 +4,18 @@ var express = require('express');
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
+/**
+ * Optimizing function:
+ *
+ *  Test Range: x:[-4.0-6.0] y:[-10,10]
+ *
+ *  f(x,y) = 0.4+-1*(0.3*(1-x)*x+y*(2-y)*0.3+x*y/100)
+ *
+ *  Global minimum at (0.51681, 1.00861) with 0.0198944
+ *
+ *  Additional random variance can be enabled
+ */
+
 var app = express();
 
 app.get('/', function (req, res) {
@@ -12,16 +24,15 @@ app.get('/', function (req, res) {
 
 app.get('/monitor', function (req, res) {
     res.send(JSON.stringify({
-        i1: 1,
-        i2: "42"
+        f: 1
     }));
 });
 
 app.post('/execute', function (req, res) {
     if (req.body) {
-        console.log("Got value changes: o1:" + req.body.o1 + " - o2:" + req.body.o2)
-        o1 = req.body.o1 || o1
-        o2 = req.body.o2 || o2
+        console.log("Got value changes: o1:" + req.body.x + " - o2:" + req.body.y)
+        x = req.body.x || x
+        y = req.body.y || y
     }
     res.send("ok")
 });
@@ -30,15 +41,9 @@ app.get('/monitor_schema', function (req, res) {
     res.send(JSON.stringify({
         type: "object",
         properties: {
-            i1: {
-                type: "integer",
-                format: "int64",
-                example: 10
-            },
-            i2: {
-                type: "string",
-                example: "10"
-            },
+            f: {
+                type: "number"
+            }
         }
     }));
 });
@@ -47,28 +52,27 @@ app.get('/execute_schema', function (req, res) {
     res.send(JSON.stringify({
         type: "object",
         properties: {
-            o1: {
-                type: "integer",
-                format: "int64",
-                example: 10
+            x: {
+                type: "number"
             },
-            o2: {
-                type: "integer",
-                format: "int64",
-                example: 10                },
+            y: {
+                type: "number"
+            },
         }
     }));
 });
 
 app.get('/adaptation_options', function (req, res) {
     res.send(JSON.stringify({
-        o1: {
-            "values": [10, 12, 14],
-            "type": "discrete"
+        x: {
+            "start": -4.0,
+            "stop": 6.0,
+            "type": "continuous"
         },
-        o2: {
-            "values": [5, 15, 20],
-            "type": "discrete"
+        y: {
+            "start": -10.0,
+            "stop": 10.0,
+            "type": "continuous"
         }
     }));
 });
@@ -77,35 +81,33 @@ app.get('/adaptation_options_schema', function (req, res) {
     res.send(JSON.stringify({
         type: "object",
         properties: {
-            o1: {
-                "type": "object",
-                "properties": {
-                    "values": {
-                        "type": "array",
-                        "items": {
-                            "type": "number",
-                            "format": "integer",
-                            "example": 10
-                        }
+            x: {
+                type: "object",
+                properties: {
+                    start: {
+                        type: "number",
                     },
-                    "type": {
-                        "type": "string"
+                    stop: {
+                        type: "number",
+                    },
+                    type: {
+                        type: "string"
                     }
                 }
             },
-            o2: {
-                "type": "object",
-                "properties": {
-                    "values": {
-                        "type": "array",
-                        "items": {
-                            "type": "number",
-                            "format": "integer",
-                            "example": 10
-                        }
+            y: {
+                type: "object",
+                properties: {
+                    start: {
+                        type: "number",
+                        format: "float"
                     },
-                    "type": {
-                        "type": "string"
+                    stop: {
+                        type: "number",
+                        format: "float"
+                    },
+                    type: {
+                        type: "string"
                     }
                 }
             }
