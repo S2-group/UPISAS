@@ -21,11 +21,4 @@ class SWIM(Exemplar):
         super().__init__("http://localhost:3000", swim_docker_kwargs, auto_start)
     
     def start_run(self):
-    #docker exec -it swim sh -c "cd ~/seams-swim/swim/simulations/swim/ && ./run.sh sim 1"
-        print("doing something")
         self.exemplar_container.exec_run(cmd = ' sh -c "cd ~/seams-swim/swim_HTTP/simulations/swim/ && ./run.sh sim 1" ', detach=True)
-
-        time.sleep(10)
-        input("proceed to ask for stuff programmatically")
-
-        self.get_monitor_schema()
