@@ -30,7 +30,7 @@ class Exemplar(ABC):
             except docker.errors.ImageNotFound:
                 logging.info(f"image '{image_name}' not found locally")
                 images_from_owner = docker_client.images.search(image_owner)
-                if image_name in [i["name"] for i in images_from_owner]:
+                if image_name.split(":")[0] in [i["name"] for i in images_from_owner]:
                     logging.info(f"image '{image_name}' found on DockerHub, pulling it")
                     with Progress() as progress:
                         for line in docker_client.api.pull(image_name, stream=True, decode=True):
