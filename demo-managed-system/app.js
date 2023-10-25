@@ -94,10 +94,10 @@ app.get('/adaptation_options_schema', function (req, res) {
                 type: "object",
                 properties: {
                     start: {
-                        type: "number",
+                        type: "number"
                     },
                     stop: {
-                        type: "number",
+                        type: "number"
                     },
                     type: {
                         type: "string"
@@ -108,12 +108,10 @@ app.get('/adaptation_options_schema', function (req, res) {
                 type: "object",
                 properties: {
                     start: {
-                        type: "number",
-                        format: "float"
+                        type: "number"
                     },
                     stop: {
-                        type: "number",
-                        format: "float"
+                        type: "number"
                     },
                     type: {
                         type: "string"
