@@ -12,8 +12,8 @@ pip install -r requirements.txt
 ### Run unit tests
 In a terminal, navigate to the parent folder of the project and issue:
 ```
-python -m UPISAS.tests.demo.test_exemplar
-python -m UPISAS.tests.demo.test_strategy
+python -m UPISAS.tests.upisas.test_exemplar
+python -m UPISAS.tests.upisas.test_strategy
 ```
 ### Run
 In a terminal, navigate to the parent folder of the project and issue:
