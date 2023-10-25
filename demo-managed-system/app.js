@@ -18,19 +18,28 @@ const HOST = '0.0.0.0';
 
 var app = express();
 
+var x = 0.0
+var y = 0.0
+
+var enableRandom = true
+
 app.get('/', function (req, res) {
     res.send("alive")
 });
 
 app.get('/monitor', function (req, res) {
+    var rnd = 1
+    if (enableRandom) {
+        rnd = Math.random()
+    }
     res.send(JSON.stringify({
-        f: 1
+        f: rnd * ( 0.4 + -1 * (0.3 * (1 - x) * x + y * (2 - y) * 0.3 + x * y / 100))
     }));
 });
 
-app.post('/execute', function (req, res) {
+app.put('/execute', function (req, res) {
     if (req.body) {
-        console.log("Got value changes: o1:" + req.body.x + " - o2:" + req.body.y)
+        console.log("Got value changes: x:" + req.body.x + " - y:" + req.body.y)
         x = req.body.x || x
         y = req.body.y || y
     }
@@ -116,5 +125,5 @@ app.get('/adaptation_options_schema', function (req, res) {
 });
 
 app.listen(PORT, HOST, () => {
-    console.log(`USAS HTTP test app running!! on http://${HOST}:${PORT}`);
+    console.log(`upisas-demo-managed-system running on http://${HOST}:${PORT}`);
 });

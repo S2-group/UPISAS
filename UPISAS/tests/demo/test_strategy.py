@@ -27,7 +27,7 @@ class TestStrategy(unittest.TestCase):
         with self.assertLogs() as cm:
             self.strategy.get_adaptation_options()
             self.assertTrue("JSON Schema validated" in ", ".join(cm.output))
-        self.assertIsNotNone(self.strategy.knowledge.adaptations_options)
+        self.assertIsNotNone(self.strategy.knowledge.adaptation_options)
 
     def test_monitor_successfully(self):
         self._start_server_and_wait_until_is_up()
@@ -44,7 +44,7 @@ class TestStrategy(unittest.TestCase):
         self.strategy = DemoStrategy(self.exemplar)
         self.strategy.get_execute_schema()
         with self.assertLogs() as cm:
-            successful = self.strategy.execute({"o1": 2, "o2": 5})
+            successful = self.strategy.execute({"x": 2, "y": 5})
             self.assertTrue("JSON Schema validated" in ", ".join(cm.output))
         self.assertTrue(successful)
 
@@ -69,7 +69,7 @@ class TestStrategy(unittest.TestCase):
         self._start_server_and_wait_until_is_up()
         self.strategy = DemoStrategy(self.exemplar)
         self.strategy.get_adaptation_options_schema()
-        self.assertIsNotNone(self.strategy.knowledge.adaptations_options_schema)
+        self.assertIsNotNone(self.strategy.knowledge.adaptation_options_schema)
 
     def test_monitor_schema_endpoint_reachable(self):
         self._start_server_and_wait_until_is_up()
@@ -104,7 +104,7 @@ class TestStrategy(unittest.TestCase):
     def test_execute_endpoint_not_reachable(self):
         self._start_server_and_wait_until_is_up(app="app-no-endpoints.js")
         self.strategy = DemoStrategy(self.exemplar)
-        successful = self.strategy.execute({"o1": 2, "o2": 5})
+        successful = self.strategy.execute({"x": 2, "y": 5})
         self.assertFalse(successful)
 
     def test_adaptation_options_schema_endpoint_not_reachable(self):
@@ -139,9 +139,6 @@ class TestStrategy(unittest.TestCase):
         self.strategy.knowledge.monitor_schema = {
             "type": "object",
             "properties": {
-                "i2": {
-                    "type": "string",
-                },
             }
         }
         with self.assertLogs() as cm:
@@ -155,12 +152,9 @@ class TestStrategy(unittest.TestCase):
         self.strategy.knowledge.monitor_schema = {
             "type": "strange_value",
             "properties": {
-                "i1": {
-                    "type": "integer",
-                },
-                "i2": {
-                    "type": "string",
-                },
+                "f": {
+                    "type": "number",
+                }
             }
         }
         with self.assertLogs() as cm:
@@ -174,12 +168,9 @@ class TestStrategy(unittest.TestCase):
         self.strategy.knowledge.monitor_schema = {
             "type": "object",
             "properties": {
-                "i1": {
+                "f": {
                     "type": "string",
-                },
-                "i2": {
-                    "type": "string",
-                },
+                }
             }
         }
         with self.assertLogs() as cm:

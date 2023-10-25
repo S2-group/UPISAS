@@ -7,8 +7,8 @@ class Knowledge:
     analysis_data: dict
     plan_data: dict
 
-    adaptations_options: dict
+    adaptation_options: dict
 
     monitor_schema: dict
     execute_schema: dict
-    adaptations_options_schema: dict
+    adaptation_options_schema: dict

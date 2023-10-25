@@ -40,7 +40,7 @@ class Strategy(ABC):
     def execute(self, adaptation, endpoint_suffix="execute"):
         validate_schema(adaptation, self.knowledge.execute_schema)
         url = '/'.join([self.exemplar.base_endpoint, endpoint_suffix])
-        response = requests.post(url, adaptation)
+        response = requests.put(url, adaptation)
         print("[Execute]\tposted configuration: " + str(adaptation))
         if response.status_code == 404:
             logging.info("Cannot execute adaptation on remote system, check that the execute endpoint exists.")
