@@ -19,43 +19,56 @@ externalDocs:
 servers:
   - url: https://petstore3.swagger.io/api/v3
 tags:
+  - name: adaptation_options
+    description: Get adaptation options
   - name: monitor
     description: Get data
-    externalDocs:
-      description: Find out more
-      url: http://swagger.io
   - name: execute
     description: Request a runtime adaptation
-    externalDocs:
-      description: Find out more
-      url: http://swagger.io
+  - name: adaptation_options_schema
+    description: Request the schemar of adaptation_options
+  - name: monitor_schema
+    description: Request the schema of monitoring
+  - name: execute_schema
+    description: Request the schema of execution
+
 paths:
-  /monitor:
+  /adaptation_options:
     get:
       tags:
-        - monitor
-      summary: Get data from exemplar
-      description: Used for runtime monitoring
-      operationId: monitorFunction
+        - adaptation_options
+      summary: Get adaptation options from exemplar
+      description: Used at the beginning of an exemplar run or whenever the adaptations options are changed during a run of the exemplar
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  type: number
-                  format: float
+                $ref: '#/components/schemas/AdaptationOptions'
+        '400':
+          description: Invalid status value
+  /monitor:
+    get:
+      tags:
+        - monitor
+      summary: Get data from exemplar
+      description: Used for runtime monitoring
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monitor'
         '400':
           description: Invalid status value
   /execute:
-    post:
+    put:
       tags:
         - execute
       summary: Enact a change
       description: Used to adapt the exemplar at runtime
-      operationId: executeFunction
       responses:
         '200':
           description: Successful operation
@@ -68,9 +81,44 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Execution'
+  /adaptation_options_schema:
+    get:
+      tags:
+        - adaptation_options_schema
+      summary: Get the adaptation options schema
+      description: Get the scheme of the adaptation options
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid status value
+  /monitor_schema:
+    get:
+      tags:
+        - monitor_schema
+      summary: Get the monitor schema
+      description: Get the scheme of the monitored data
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid status value
+  /execute_schema:
+    get:
+      tags:
+        - execute_schema
+      summary: Get the execute schema
+      description: Get the scheme of the execute data
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid status value
 components:
   schemas:
+    AdaptationOptions:
+      type: object
+    Monitor:
+      type: object
     Execution:
       type: object
-      additionalProperties:
-        type: string
