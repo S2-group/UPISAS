@@ -36,14 +36,14 @@ class Exemplar(ABC):
                         for line in docker_client.api.pull(image_name, stream=True, decode=True):
                             show_progress(line, progress)
                 else:
-                    logging.error(f"image '{image_name}' not found on DockerHub, exiting")
-                    raise DockerImageNotFoundOnDockerHub()
+                    logging.error(f"image '{image_name}' not found on DockerHub, exiting!")
+                    raise DockerImageNotFoundOnDockerHub
             docker_kwargs["detach"] = True
             self.exemplar_container = docker_client.containers.create(**docker_kwargs)
         except DockerException as e:
-            logging.warning("A DockerException occurred, are you sure the Docker deamon is running?")
+            logging.error("A DockerException occurred, are you sure the Docker deamon is running?")
             logging.error(e)
-            raise DockerDeamonNotRunning()
+            raise DockerDeamonNotRunning
         if auto_start:
             self.start_container()
 

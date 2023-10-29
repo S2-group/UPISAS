@@ -2,7 +2,7 @@ import jsonschema
 import requests
 import logging
 
-from UPISAS.exceptions import ServerNotReachable
+from UPISAS.exceptions import ServerNotReachable, IncompleteJSONSchema
 
 pull_image_tasks = {}
 
@@ -22,15 +22,15 @@ def show_progress(line, progress):
         progress.update(pull_image_tasks[id], completed=line['progressDetail']['current'])
 
 
-def perform_get_request(url):
+def get_response_for_get_request(url):
     try:
         logging.info("GET request to " + str(url))
         response = requests.get(url)
-        return response, response.status_code
+        return response
     except requests.exceptions.ConnectionError as e:
-        logging.warning(e)
-        logging.warning("Please check that the server is reachable and retry.")
-        raise ServerNotReachable()
+        logging.error(e)
+        logging.error("Please check that the server is reachable and retry.")
+        raise ServerNotReachable
 
 
 def validate_schema(json_instance, json_schema):
@@ -41,12 +41,17 @@ def validate_schema(json_instance, json_schema):
             json_schema_keys = sorted(json_schema["properties"].keys())
             if json_instance_keys == json_schema_keys:
                 jsonschema.validate(json_instance, json_schema)
-                logging.info("JSON Schema validated")
+                logging.info("JSON object validated by JSON Schema")
             else:
-                logging.warning(incomplete_warning_message)
+                logging.error(incomplete_warning_message)
+                raise IncompleteJSONSchema
         else:
-            logging.warning(incomplete_warning_message)
+            logging.error(incomplete_warning_message)
+            raise IncompleteJSONSchema
     except jsonschema.exceptions.ValidationError as error:
-        logging.error(f"ValidationError in validating JSON Schema: {error}")
+        logging.error(f"ValidationError in validating JSON object with JSON Schema: {error}")
+        raise
     except jsonschema.exceptions.SchemaError as error:
-        logging.error(f"SchemaError in validating JSON Schema: {error}")
+        logging.error(f"SchemaError in validating JSON object with JSON Schema: {error}")
+        raise
+

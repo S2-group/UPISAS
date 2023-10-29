@@ -16,3 +16,7 @@ class ServerNotReachable(UPISASException):
 
 class EndpointNotReachable(UPISASException):
     pass
+
+
+class IncompleteJSONSchema(UPISASException):
+    pass

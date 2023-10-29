@@ -1,7 +1,7 @@
 import unittest
 import time
 
-from UPISAS import perform_get_request
+from UPISAS import get_response_for_get_request, validate_schema
 from UPISAS.exemplars.swim import SWIM
 from UPISAS.strategies.empty_strategy import EmptyStrategy
 
@@ -22,16 +22,16 @@ class TestStrategy(unittest.TestCase):
             self.exemplar.stop_container()
 
     def test_get_adaptation_options_successfully(self):
-        self.strategy.get_adaptation_options()
+        self.strategy.get_adaptation_options(with_validation=False)
         self.assertIsNotNone(self.strategy.knowledge.adaptation_options)
 
     def test_monitor_successfully(self):
-        successful = self.strategy.monitor()
+        successful = self.strategy.monitor(with_validation=False)
         self.assertTrue(successful)
         self.assertNotEqual(self.strategy.knowledge.monitored_data, dict())
 
     def test_execute_successfully(self):
-        successful = self.strategy.execute({"server_number": 2, "dimmer_factor": 0.5})
+        successful = self.strategy.execute({"server_number": 2, "dimmer_factor": 0.5}, with_validation=False)
         self.assertTrue(successful)
 
     def test_adaptation_options_schema_endpoint_reachable(self):
@@ -50,14 +50,14 @@ class TestStrategy(unittest.TestCase):
         self.strategy.get_adaptation_options_schema()
         with self.assertLogs() as cm:
             self.strategy.get_adaptation_options()
-            self.assertTrue("JSON Schema validated" in ", ".join(cm.output))
+            self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertIsNotNone(self.strategy.knowledge.adaptation_options)
 
     def test_schema_of_monitor(self):
         self.strategy.get_monitor_schema()
         with self.assertLogs() as cm:
             successful = self.strategy.monitor()
-            self.assertTrue("JSON Schema validated" in ", ".join(cm.output))
+            self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertTrue(successful)
         self.assertNotEqual(self.strategy.knowledge.monitored_data, dict())
 
@@ -65,7 +65,7 @@ class TestStrategy(unittest.TestCase):
         self.strategy.get_execute_schema()
         with self.assertLogs() as cm:
             successful = self.strategy.execute({"server_number": 2, "dimmer_factor": 0.5})
-            self.assertTrue("JSON Schema validated" in ", ".join(cm.output))
+            self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertTrue(successful)
 
     def _start_server_and_wait_until_is_up(self, base_endpoint="http://localhost:3000"):
@@ -73,9 +73,9 @@ class TestStrategy(unittest.TestCase):
         while True:
             time.sleep(1)
             print("trying to connect...")
-            _, status_code = perform_get_request(base_endpoint+"/monitor")
-            print(status_code)
-            if status_code < 400:
+            response = get_response_for_get_request(base_endpoint)
+            print(response.status_code)
+            if response.status_code < 400:
                 return
 
 

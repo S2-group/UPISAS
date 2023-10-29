@@ -1,8 +1,10 @@
 import unittest
 import time
 
-from UPISAS import perform_get_request, ServerNotReachable
-from UPISAS.exceptions import EndpointNotReachable
+import jsonschema
+
+from UPISAS import get_response_for_get_request, ServerNotReachable
+from UPISAS.exceptions import EndpointNotReachable, IncompleteJSONSchema
 from UPISAS.exemplars.demo_exemplar import DemoExemplar
 from UPISAS.strategies.demo_strategy import DemoStrategy
 
@@ -25,7 +27,7 @@ class TestStrategy(unittest.TestCase):
         self.strategy.get_adaptation_options_schema()
         with self.assertLogs() as cm:
             self.strategy.get_adaptation_options()
-            self.assertTrue("JSON Schema validated" in ", ".join(cm.output))
+            self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertIsNotNone(self.strategy.knowledge.adaptation_options)
 
     def test_monitor_successfully(self):
@@ -34,7 +36,7 @@ class TestStrategy(unittest.TestCase):
         self.strategy.get_monitor_schema()
         with self.assertLogs() as cm:
             successful = self.strategy.monitor()
-            self.assertTrue("JSON Schema validated" in ", ".join(cm.output))
+            self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertTrue(successful)
         self.assertNotEqual(self.strategy.knowledge.monitored_data, dict())
 
@@ -44,7 +46,7 @@ class TestStrategy(unittest.TestCase):
         self.strategy.get_execute_schema()
         with self.assertLogs() as cm:
             successful = self.strategy.execute({"x": 2.1, "y": 5.3})
-            self.assertTrue("JSON Schema validated" in ", ".join(cm.output))
+            self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertTrue(successful)
 
     def test_adaptation_options_schema_endpoint_reachable(self):
@@ -68,6 +70,7 @@ class TestStrategy(unittest.TestCase):
     def test_analyze_successfully(self):
         self._start_server_and_wait_until_is_up()
         self.strategy = DemoStrategy(self.exemplar)
+        self.strategy.get_monitor_schema()
         self.strategy.monitor()
         successful = self.strategy.analyze()
         self.assertTrue(successful)
@@ -76,6 +79,7 @@ class TestStrategy(unittest.TestCase):
     def test_plan_successfully(self):
         self._start_server_and_wait_until_is_up()
         self.strategy = DemoStrategy(self.exemplar)
+        self.strategy.get_monitor_schema()
         self.strategy.monitor()
         self.strategy.analyze()
         successful = self.strategy.plan()
@@ -96,15 +100,15 @@ class TestStrategy(unittest.TestCase):
     def test_monitor_endpoint_not_reachable(self):
         self._start_server_and_wait_until_is_up(app="app-no-endpoints.js")
         self.strategy = DemoStrategy(self.exemplar)
-        successful = self.strategy.monitor()
-        self.assertFalse(successful)
+        with self.assertRaises(EndpointNotReachable):
+            self.strategy.monitor(with_validation=False)
         self.assertDictEqual(self.strategy.knowledge.monitored_data, dict())
 
     def test_execute_endpoint_not_reachable(self):
         self._start_server_and_wait_until_is_up(app="app-no-endpoints.js")
         self.strategy = DemoStrategy(self.exemplar)
-        successful = self.strategy.execute({"x": 2.1, "y": 5.3})
-        self.assertFalse(successful)
+        with self.assertRaises(EndpointNotReachable):
+            self.strategy.execute({"x": 2.1, "y": 5.3}, with_validation=False)
 
     def test_adaptation_options_schema_endpoint_not_reachable(self):
         self._start_server_and_wait_until_is_up(app="app-no-endpoints.js")
@@ -127,9 +131,8 @@ class TestStrategy(unittest.TestCase):
     def test_json_validation_no_schema_present(self):
         self._start_server_and_wait_until_is_up()
         self.strategy = DemoStrategy(self.exemplar)
-        with self.assertLogs() as cm:
+        with self.assertRaises(IncompleteJSONSchema):
             self.strategy.monitor()
-            self.assertTrue("No complete JSON Schema provided for validation" in ", ".join(cm.output))
 
     def test_json_validation_no_complete_schema_present(self):
         self._start_server_and_wait_until_is_up()
@@ -140,9 +143,8 @@ class TestStrategy(unittest.TestCase):
             "properties": {
             }
         }
-        with self.assertLogs() as cm:
+        with self.assertRaises(IncompleteJSONSchema):
             self.strategy.monitor()
-            self.assertTrue("No complete JSON Schema provided for validation" in ", ".join(cm.output))
 
     def test_json_validation_json_schema_invalid(self):
         self._start_server_and_wait_until_is_up()
@@ -156,9 +158,8 @@ class TestStrategy(unittest.TestCase):
                 }
             }
         }
-        with self.assertLogs() as cm:
+        with self.assertRaises(jsonschema.exceptions.SchemaError):
             self.strategy.monitor()
-            self.assertTrue("SchemaError" in ", ".join(cm.output))
 
     def test_json_validation_json_instance_not_conforming_to_schema(self):
         self._start_server_and_wait_until_is_up()
@@ -172,18 +173,17 @@ class TestStrategy(unittest.TestCase):
                 }
             }
         }
-        with self.assertLogs() as cm:
+        with self.assertRaises(jsonschema.exceptions.ValidationError):
             self.strategy.monitor()
-            self.assertTrue("ValidationError" in ", ".join(cm.output))
 
     def _start_server_and_wait_until_is_up(self, base_endpoint="http://localhost:3000", app="app.js"):
         self.exemplar.start_run(app)
         while True:
             time.sleep(1)
             print("trying to connect...")
-            _, status_code = perform_get_request(base_endpoint)
-            print(status_code)
-            if status_code < 400:
+            response = get_response_for_get_request(base_endpoint)
+            print(response.status_code)
+            if response.status_code < 400:
                 return
 
 
