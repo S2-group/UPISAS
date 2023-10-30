@@ -1,5 +1,5 @@
 import docker
-from abc import ABC
+from abc import ABC, abstractmethod
 from rich.progress import Progress
 from UPISAS import show_progress
 import logging
@@ -46,6 +46,10 @@ class Exemplar(ABC):
             raise DockerDeamonNotRunning
         if auto_start:
             self.start_container()
+
+    @abstractmethod
+    def start_run(self):
+        pass
 
     def start_container(self):
         '''Starts running the docker container made from the given image when constructing this class'''
