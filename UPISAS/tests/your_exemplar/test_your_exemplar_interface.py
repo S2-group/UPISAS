@@ -2,14 +2,14 @@ import unittest
 import time
 
 from UPISAS import get_response_for_get_request
-from UPISAS.exemplars.your_exemplar import YourExemplar
+from UPISAS.exemplars.crowdnav_exemplar import CrowdNavExemplar
 from UPISAS.strategies.empty_strategy import EmptyStrategy
 
 
 class TestYourExemplarInterface(unittest.TestCase):
 
     def setUp(self):
-        self.exemplar = YourExemplar(auto_start=True)
+        self.exemplar = CrowdNavExemplar(auto_start=True)
         self._start_server_and_wait_until_is_up()
         self.strategy = EmptyStrategy(self.exemplar)
 
@@ -27,7 +27,15 @@ class TestYourExemplarInterface(unittest.TestCase):
         self.assertNotEqual(self.strategy.knowledge.monitored_data, dict())
 
     def test_execute_successfully(self):
-        successful = self.strategy.execute({"server_number": 2, "dimmer_factor": 0.5}, with_validation=False)
+        successful = self.strategy.execute({
+            "reRouteEveryTicks": 65.0,
+            "maxSpeedAndLengthFactor": 2.0,
+            "freshnessCutOffValue": 9.0,
+            "explorationPercentage": 0.6,
+            "routeRandomSigma": 0.2,
+            "freshnessUpdateFactor": 10.0,
+            "averageEdgeDurationFactor": 1.0
+        }, with_validation=False)
         self.assertTrue(successful)
 
     def test_adaptation_options_schema_endpoint_reachable(self):
@@ -60,7 +68,15 @@ class TestYourExemplarInterface(unittest.TestCase):
     def test_schema_of_execute(self):
         self.strategy.get_execute_schema()
         with self.assertLogs() as cm:
-            successful = self.strategy.execute({"server_number": 2, "dimmer_factor": 0.5})
+            successful = self.strategy.execute({
+                "reRouteEveryTicks": 65.0,
+                "maxSpeedAndLengthFactor": 2.0,
+                "freshnessCutOffValue": 9.0,
+                "explorationPercentage": 0.6,
+                "routeRandomSigma": 0.2,
+                "freshnessUpdateFactor": 10.0,
+                "averageEdgeDurationFactor": 1.0
+            })
             self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertTrue(successful)
 

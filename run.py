@@ -1,6 +1,6 @@
 from UPISAS.example_strategy import ExampleStrategy
 from UPISAS.exemplar import Exemplar
-from UPISAS.exemplars.swim import SWIM
+from UPISAS.exemplars.crowdnav_exemplar import CrowdNavExemplar
 import signal
 import sys
 
@@ -13,7 +13,7 @@ import sys
 # signal.signal(signal.SIGINT, signal_handler)
 if __name__ == '__main__':
     
-    exemplar = SWIM(auto_start=True)
+    exemplar = CrowdNavExemplar(auto_start=True)
     exemplar.start_run()
     # try:
     #     strategy = ExampleStrategy(exemplar)
