@@ -1,6 +1,8 @@
 # UPISAS
 Unified Python interface for self-adaptive system exemplars.
 
+Documentation on the experiment runner can be found in [./runner/README.md](./runner/README.md)
+
 ### Prerequisites 
 Tested with Python 3.9.12
 
