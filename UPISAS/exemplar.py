@@ -4,7 +4,7 @@ from rich.progress import Progress
 from UPISAS import show_progress
 import logging
 from docker.errors import DockerException
-from UPISAS.exceptions import DockerImageNotFoundOnDockerHub, DockerDeamonNotRunning
+from UPISAS.exceptions import DockerImageNotFoundOnDockerHub, DockerDaemonNotRunning
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -41,9 +41,8 @@ class Exemplar(ABC):
             docker_kwargs["detach"] = True
             self.exemplar_container = docker_client.containers.create(**docker_kwargs)
         except DockerException as e:
-            logging.error("A DockerException occurred, are you sure the Docker deamon is running?")
-            logging.error(e)
-            raise DockerDeamonNotRunning
+            logging.error(f"A DockerException occurred: {e}")
+            raise DockerDaemonNotRunning
         if auto_start:
             self.start_container()
 

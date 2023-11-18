@@ -2,7 +2,7 @@ class UPISASException(Exception):
     pass
 
 
-class DockerDeamonNotRunning(UPISASException):
+class DockerDaemonNotRunning(UPISASException):
     pass
 
 
