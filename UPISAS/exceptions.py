@@ -2,10 +2,6 @@ class UPISASException(Exception):
     pass
 
 
-class DockerDeamonNotRunning(UPISASException):
-    pass
-
-
 class DockerImageNotFoundOnDockerHub(UPISASException):
     pass
 
