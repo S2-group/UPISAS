@@ -34,14 +34,17 @@ class Strategy(ABC):
         return True
 
     def execute(self, adaptation, endpoint_suffix="execute", with_validation=True):
-        if with_validation:
-            validate_schema(adaptation, self.knowledge.execute_schema)
+        # * Uncomment if you want to validate adaptation input against adaptation_options_schema
+        # if with_validation:
+        #     validate_schema(adaptation, self.knowledge.adaptation_options_schema)
         url = '/'.join([self.exemplar.base_endpoint, endpoint_suffix])
         response = requests.put(url, json=adaptation)
         print("[Execute]\tposted configuration: " + str(adaptation))
         if response.status_code == 404:
             logging.error("Cannot execute adaptation on remote system, check that the execute endpoint exists.")
             raise EndpointNotReachable
+        if with_validation:
+            validate_schema(response.json(), self.knowledge.execute_schema)
         return True
 
     def get_adaptation_options(self, endpoint_suffix: "API Endpoint" = "adaptation_options", with_validation=True):

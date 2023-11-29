@@ -4,7 +4,9 @@ import time
 from UPISAS import get_response_for_get_request
 from UPISAS.exemplars.your_exemplar import YourExemplar
 from UPISAS.strategies.empty_strategy import EmptyStrategy
+from UPISAS.exceptions import ServerNotReachable
 
+from requests.exceptions import RequestException
 
 class TestYourExemplarInterface(unittest.TestCase):
 
@@ -69,10 +71,17 @@ class TestYourExemplarInterface(unittest.TestCase):
         while True:
             time.sleep(1)
             print("trying to connect...")
-            response = get_response_for_get_request(base_endpoint)
-            print(response.status_code)
-            if response.status_code < 400:
-                return
+            try:
+                response = get_response_for_get_request(base_endpoint)
+                print(response.status_code)
+                if response.status_code < 400:
+                    return
+            except RequestException as e:
+                print(e)
+                print("retrying connection")
+            except ServerNotReachable as e:
+                print(e)
+                print("retrying connection")
 
 
 if __name__ == '__main__':
