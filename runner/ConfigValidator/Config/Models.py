@@ -63,7 +63,7 @@ class RunTableModel:
         if data_columns is None:
             data_columns = []
 
-        if len(set([factor.factor_name for factor in strategies])) != len(strategies):
+        if len(set([strategy.strategy_name for strategy in strategies])) != len(strategies):
             raise BaseError("Duplicate factor name detected!")
 
         if len(set(data_columns)) != len(data_columns):
@@ -77,6 +77,9 @@ class RunTableModel:
         self.__shuffle = shuffle
 
     def get_factors(self) -> List[StrategyModel]:
+        return self.__factors
+    
+    def get_strategies(self) -> List[StrategyModel]:
         return self.__factors
 
     def get_data_columns(self) -> List[str]:
@@ -108,13 +111,13 @@ class RunTableModel:
                 del full_list[idx]
             return full_list
 
-        list_of_lists = [factor.treatments for factor in self.__factors]
+        list_of_lists = [factor.parameter_values for factor in self.__factors]
         combinations_list = list(itertools.product(*list_of_lists))
         filtered_list = __filter_list(combinations_list)
 
         column_names = ['__run_id', '__done']  # Needed for experiment-runner functionality
         for factor in self.__factors:
-            column_names.append(factor.factor_name)
+            column_names.append(factor.strategy_name)
 
         if self.__data_columns:
             for data_column in self.__data_columns:

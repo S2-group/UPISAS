@@ -4,3 +4,4 @@ demo-managed-system/package-lock.json
 venv
 __pycache__
 *.joblib
+experiments/

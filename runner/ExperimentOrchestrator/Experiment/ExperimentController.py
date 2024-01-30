@@ -92,8 +92,8 @@ class ExperimentController:
             for existing_var, generated_var in zip(existing_run_table, self.run_table):
                 assert (existing_var['__run_id'] == generated_var['__run_id'])
 
-                for k in map(lambda factor: factor.factor_name,
-                             self.config.run_table_model.get_factors()):  # treatment levels remain the same
+                for k in map(lambda strategy: strategy.strategy_name,
+                             self.config.run_table_model.get_strategies()):  # treatment levels remain the same
                     assert (str(generated_var[k]) == str(existing_var[k]))
 
                 for k in set(self.config.run_table_model.get_data_columns()).union(
