@@ -21,6 +21,8 @@ nltk = "^3.8.1"
 flask = "^3.0.1"
 pandas = "^2.2.0"
 matplotlib = "^3.8.2"
+seaborn = "^0.13.2"
+gunicorn = "^21.2.0"
 
 
 [build-system]
