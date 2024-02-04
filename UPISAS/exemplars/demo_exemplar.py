@@ -3,7 +3,6 @@ from time import sleep
 from UPISAS import get_response_for_get_request
 from UPISAS.exemplar import Exemplar
 from UPISAS.exceptions import ServerNotReachable
-from runner import run_experiment
 
 
 class DemoExemplar(Exemplar):

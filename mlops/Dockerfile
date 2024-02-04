@@ -1,4 +1,4 @@
-FROM python:3.11-buster as build
+FROM quay.io/jupyter/scipy-notebook:latest
 
 RUN pip install poetry==1.7.1
 
@@ -11,18 +11,20 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-root --no-dev && rm -rf $POETRY_CACHE_DIR
 
-# Multi-stage build to reduce image size
-FROM quay.io/jupyter/scipy-notebook:latest as run
-
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"
 
-WORKDIR /app
-COPY --from=build ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-
-COPY . .
+RUN mkdir /app/mlops
+COPY . ./mlops
 
 # install nltk data
-RUN chmod +x /app/setup.sh && /app/setup.sh
+RUN poetry run /bin/sh /app/mlops/setup.sh
 
-CMD ["gunicorn", "app:app", "-w", "4", "-b", "0.0.0.0:5001", "--log-level", "debug"]
+USER root
+# See: https://jupyter-docker-stacks.readthedocs.io/en/latest/using/common.html#notebook-user
+RUN chown -R jovyan:users /app/mlops
+USER 1000
+
+# Run forever (the HTTP server should be started by exec_run)
+CMD [ "sleep", "infinity" ]
+#CMD ["gunicorn", "app:app", "-w", "4", "-b", "0.0.0.0:5001", "--log-level", "debug"]

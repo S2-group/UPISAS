@@ -19,11 +19,17 @@ def get_versions():
 def get_latest_version():
     """Returns the latest semver version of the model."""
     versions = get_versions()
+    if len(versions) == 0:
+        return "v0"
+
     return max(versions)
 
 def get_next_version():
     """Returns the next semver version of the model."""
     versions = get_versions()
+    if len(versions) == 0:
+        return "v0"
+
     return f"v{len(versions) - 1}" # latest is included, so no need to add 1
 
 def get_model(version='latest'):

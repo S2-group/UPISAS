@@ -13,9 +13,6 @@ import os
 
 from UPISAS.strategies.demo_strategy import DemoStrategy
 from UPISAS.exemplars.demo_exemplar import DemoExemplar
-from UPISAS.exemplars.swim import SWIM
-import signal
-import sys
 
 
 class RunnerConfig:

@@ -3,7 +3,7 @@ import logging
 from flask import request, jsonify
 from joblib import dump, load
 
-from training.versioning import get_next_version, get_latest_version
+from .versioning import get_next_version, get_latest_version
 
 
 class BasedManagedModel(ABC):
@@ -87,6 +87,13 @@ class BasedManagedModel(ABC):
         Should return two values: the prediction and the confidence.
         """
         pass
+
+    @abstractmethod
+    def adaptation_options(self):
+        """
+        Abstract method that returns the adaptation options.
+        """
+        pass
     
     @abstractmethod
     def monitor_schema(self):
@@ -124,27 +131,45 @@ class FlaskManagedModel(BasedManagedModel):
                 "status": "running"
                 })
         
-        @self.flask_app.route('/monitor', methods=['GET'])
+        @self.flask_app.route('/monitor', methods=['POST'])
         def monitor():
-            recent_data = self.get_data()
-            self._data = [] # reset for the next call
-            return jsonify({
-                "data": recent_data
-                })
-
-        @self.flask_app.route('/predict', methods=['POST'])
-        def predict():
+            # Also calls the model and observes the predictions
             # Validate request body contains 'body' field
             data = request.get_json()
             if not data:
                 return jsonify({"error": "Please specify data to pass to the model"}), 400
 
             # Preprocess and vectorize the email
-            prediction, confidence = self.predict(data)
-            return jsonify({
-                "prediction": prediction[0],
-                "confidence": float(confidence)
-                })
+            response = self.inference(data)
+            return jsonify(response)
+        
+        @self.flask_app.route('/execute', methods=['PUT'])
+        def execute():
+            data = request.get_json()
+            if not data:
+                self.logger.error("No data provided.")
+                data = None
+            
+            output = self.train(data)
+
+            self.save(output)
+
+            return "ok"
+        
+        @self.flask_app.route('/adaptation_options', methods=['GET'])
+        def adaptation_options():
+            return jsonify(self.adaptation_options())
+
+        @self.flask_app.route('/inference', methods=['POST'])
+        def inference():
+            # Validate request body contains 'body' field
+            data = request.get_json()
+            if not data:
+                return jsonify({"error": "Please specify data to pass to the model"}), 400
+
+            # Preprocess and vectorize the email
+            response = self.inference(data)
+            return jsonify(response)
         
         @self.flask_app.route('/monitor_schema', methods=['GET'])
         def monitor_schema():
