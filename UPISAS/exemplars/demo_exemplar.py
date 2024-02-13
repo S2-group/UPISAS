@@ -1,5 +1,8 @@
+from time import sleep
+
+from UPISAS import get_response_for_get_request
 from UPISAS.exemplar import Exemplar
-from runner import run_experiment
+from UPISAS.exceptions import ServerNotReachable
 
 
 class DemoExemplar(Exemplar):
@@ -16,3 +19,18 @@ class DemoExemplar(Exemplar):
 
     def start_run(self, app):
         self.exemplar_container.exec_run(cmd = f' sh -c "cd /usr/src/app && node {app}" ', detach=True)
+
+    def stop_run(self):
+        self.stop_container(remove=False)
+
+    def stop_and_remove(self):
+        self.stop_container(remove=True)
+
+    def wait_for_server(self):
+        while True:
+            try:
+                get_response_for_get_request(self.base_endpoint)
+                break
+            except ServerNotReachable as e:
+                pass
+            sleep(1)

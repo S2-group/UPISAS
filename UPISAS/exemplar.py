@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from rich.progress import Progress
 from UPISAS import show_progress
 import logging
-from docker.errors import DockerException
+from docker.errors import DockerException, APIError
 from UPISAS.exceptions import DockerImageNotFoundOnDockerHub
 
 logging.getLogger().setLevel(logging.INFO)
@@ -21,6 +21,7 @@ class Exemplar(ABC):
         '''Create an instance of the Exemplar class'''
         self.base_endpoint = base_endpoint
         image_name = docker_kwargs["image"]
+        self._container_name = docker_kwargs["name"]
         image_owner = image_name.split("/")[0]
         try:
             docker_client = docker.from_env()
@@ -38,8 +39,13 @@ class Exemplar(ABC):
                 else:
                     logging.error(f"image '{image_name}' not found on DockerHub, exiting!")
                     raise DockerImageNotFoundOnDockerHub
-            docker_kwargs["detach"] = True
-            self.exemplar_container = docker_client.containers.create(**docker_kwargs)
+            try:
+                self.exemplar_container = docker_client.containers.get(self._container_name)
+                logging.info(f"container '{self._container_name}' found locally")
+            except docker.errors.NotFound:
+                logging.info(f"container '{self._container_name}' not found locally")
+                docker_kwargs["detach"] = True
+                self.exemplar_container = docker_client.containers.create(**docker_kwargs)
         except DockerException as e:
             # TODO: Properly catch various errors. Currently, a lot of errors might be caught here.
             # Please check the logs if that happens.
