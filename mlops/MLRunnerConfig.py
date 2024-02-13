@@ -43,7 +43,7 @@ def send_inference_requests(**kwargs):
             break
 
         # randomly pick an email from the dataset
-        email = df.sample().iloc[0].to_dict()
+        email = df.sample(n=200, random_state=42).iloc[counter].to_dict()
         
         with monitor_lock:
             strategy.monitor(email)
