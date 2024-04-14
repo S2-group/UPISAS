@@ -1,4 +1,4 @@
-# MLOps
+# McycLOps
 
 An exemplar for Self-Adaptive retraining of Machine Learning Models, with a focus on data drift detection and prevention.
 

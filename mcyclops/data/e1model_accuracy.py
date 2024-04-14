@@ -1,6 +1,6 @@
 import pandas as pd
 
-from mlops.spam_model import SpamModel
+from mcyclops.spam_model import SpamModel
 
 def main():
     model = SpamModel("spam", "v0", None)

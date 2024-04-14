@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
 import logging
+import json
+import uuid
+
 from flask import request, jsonify
+import redis
 from joblib import dump, load
 
 from .versioning import get_next_version, get_latest_version
@@ -112,12 +116,15 @@ class FlaskManagedModel(BasedManagedModel):
     """
     A class representing a generic ML model. including functionality for training, testing, and inference.
     """
+    redis_client = None
+
     def __init__(self, 
                  model_name, 
                  model_version,
                  flask_app,):
         super().__init__(model_name, model_version)
         self.flask_app = flask_app
+        self.redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
     
     def setup(self):
         """
@@ -131,17 +138,16 @@ class FlaskManagedModel(BasedManagedModel):
                 "status": "running"
                 })
         
-        @self.flask_app.route('/monitor', methods=['POST'])
+        @self.flask_app.route('/monitor', methods=['GET'])
         def monitor():
-            # Also calls the model and observes the predictions
-            # Validate request body contains 'body' field
-            data = request.get_json()
-            if not data:
-                return jsonify({"error": "Please specify data to pass to the model"}), 400
+            keys = self.redis_client.keys()  # Retrieve all keys
+            all_data = []
+            for key in keys:
+                data = self.redis_client.get(key)  # Retrieve data
+                all_data.append(json.loads(data))  # Convert JSON string back to dictionary
+                self.redis_client.delete(key)  # Delete the record after retrieving
 
-            # Preprocess and vectorize the email
-            response = self.inference(data)
-            return jsonify(response)
+            return jsonify(all_data)
         
         @self.flask_app.route('/execute', methods=['PUT'])
         def execute():
@@ -167,8 +173,11 @@ class FlaskManagedModel(BasedManagedModel):
             if not data:
                 return jsonify({"error": "Please specify data to pass to the model"}), 400
 
-            # Preprocess and vectorize the email
+            # Run inference and store the response in redis
             response = self.inference(data)
+            key = str(uuid.uuid4())
+            self.redis_client.set(key, json.dumps(response))
+
             return jsonify(response)
         
         @self.flask_app.route('/monitor_schema', methods=['GET'])

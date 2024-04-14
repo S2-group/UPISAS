@@ -16,8 +16,8 @@ import threading
 import time
 import requests
 
-from UPISAS.strategies.mlops_strategy import MLOpsStrategy
-from UPISAS.exemplars.mlops_exemplar import MlopsExemplar
+from UPISAS.strategies.mcyclops_strategy import MLOpsStrategy
+from UPISAS.exemplars.mcyclops_exemplar import MlopsExemplar
 
 
 return_data = []
@@ -195,10 +195,12 @@ class RunnerConfig:
     def stop_measurement(self, context: RunnerContext) -> None:
         """Perform any activity here required for stopping measurements."""
 
-        for i in range(len(self.strategy.all_data)):
-            self.strategy.all_data[i]['retrain'] = context.run_variation['retrain']
+        all_data = self.strategy.get_all_data()
 
-        return_data.append(self.strategy.all_data)
+        for i in range(len(self.strategy.all_data)):
+            all_data[i]['retrain'] = context.run_variation['retrain']
+
+        return_data.append(all_data)
 
         output.console_log("Config.stop_measurement called!")
 

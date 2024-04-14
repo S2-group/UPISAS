@@ -11,7 +11,7 @@ import string
 import re
 import hashlib
 
-from mlops.training.managed_model import FlaskManagedModel
+from mcyclops.training.managed_model import FlaskManagedModel
 
 class SpamModel(FlaskManagedModel):
     _model = None
