@@ -9,8 +9,9 @@ from UPISAS.knowledge import Knowledge
 
 import requests
 
-from UPISAS.exceptions import EndpointNotReachable
-from UPISAS import validate_schema
+from UPISAS.exceptions import EndpointNotReachable, ServerNotReachable
+from UPISAS.knowledge import Knowledge
+from UPISAS import validate_schema, get_response_for_get_request
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -29,7 +30,7 @@ class Exemplar(ABC):
         image_name = docker_kwargs["image"]
         self._container_name = docker_kwargs["name"]
         image_owner = image_name.split("/")[0]
-        self.knowledge = Knowledge(dict(), dict(), dict(), dict(), dict(), dict(), dict())
+        self.knowledge = Knowledge(dict(), dict(), list(), dict(), dict(), dict(), dict(), dict())
         try:
             docker_client = docker.from_env()
             try:
@@ -123,6 +124,34 @@ class Exemplar(ABC):
         logging.info("adaptation_options_schema set to: ")
         pp.pprint(self.knowledge.adaptation_options_schema)
 
+    def check_for_update_conflicts(self):
+        """Examines knowledge.change_pipeline and returns conflicts if any exist.
+        Non-conflicting changes are placed into knowledge.plan_data."""
+        conflicts = []
+        temp_plan_data = {}
+        for update in self.knowledge.change_pipeline:
+            key = update["key"]
+            value = update["value"]
+            strategy = update["strategy"]
+            # If the value is already in the plan_data, we've found a conflict...
+            if key in temp_plan_data:
+                conflict = {
+                    "strategies": [temp_plan_data[key]["strategy"], strategy],
+                    "key": key,
+                    "original_value": temp_plan_data[key]["value"],
+                    "new_value": value,
+                }
+                conflicts.append(update)
+                # Remove the key from the plan_data...
+                if key in self.knowledge.plan_data:
+                    del self.knowledge.plan_data[key]
+
+            # Otherwise, add the key to the plan_data...
+            else:
+                temp_plan_data[key] = {"value": value, "strategy": strategy}
+                self.knowledge.plan_data[key] = value
+        return conflicts
+
     def _perform_get_request(self, endpoint_suffix: "API Endpoint"):
         url = '/'.join([self.exemplar.base_endpoint, endpoint_suffix])
         response = get_response_for_get_request(url)
@@ -130,6 +159,10 @@ class Exemplar(ABC):
             logging.error("Please check that the endpoint you are trying to reach actually exists.")
             raise EndpointNotReachable
         return response.json()
+    
+    def ping(self):
+        ping_res = self._perform_get_request(self.exemplar.base_endpoint)
+        logging.info(f"ping result: {ping_res}")
 
     def start_container(self):
         '''Starts running the docker container made from the given image when constructing this class'''

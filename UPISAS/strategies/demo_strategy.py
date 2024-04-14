@@ -16,6 +16,7 @@ class DemoStrategy(Strategy):
     def plan(self):
         data = self.knowledge.analysis_data["mean_f"]
         if data > 0:
-            self.knowledge.plan_data = {"x": 2, "y": 5}
+            self.update_adaptation_data("x", 2)
+            self.update_adaptation_data("y", 5)
             return True
         return False
