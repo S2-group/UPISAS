@@ -4,14 +4,14 @@ from rich.progress import Progress
 from UPISAS import show_progress
 import logging
 from docker.errors import DockerException, APIError
-from UPISAS.exceptions import DockerImageNotFoundOnDockerHub
+from UPISAS.exceptions import DockerImageNotFoundOnDockerHub, EndpointNotReachable
 from UPISAS.knowledge import Knowledge
 
 import requests
 
-from UPISAS.exceptions import EndpointNotReachable, ServerNotReachable
-from UPISAS.knowledge import Knowledge
 from UPISAS import validate_schema, get_response_for_get_request
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -94,7 +94,7 @@ class Exemplar(ABC):
     def execute(self, adaptation, endpoint_suffix="execute", with_validation=True):
         if with_validation:
             validate_schema(adaptation, self.knowledge.execute_schema)
-        url = '/'.join([self.exemplar.base_endpoint, endpoint_suffix])
+        url = '/'.join([self.base_endpoint, endpoint_suffix])
         response = requests.put(url, json=adaptation)
         print("[Execute]\tposted configuration: " + str(adaptation))
         if response.status_code == 404:
@@ -136,24 +136,28 @@ class Exemplar(ABC):
             # If the value is already in the plan_data, we've found a conflict...
             if key in temp_plan_data:
                 conflict = {
-                    "strategies": [temp_plan_data[key]["strategy"], strategy],
+                    "original_strategy": temp_plan_data[key]["strategy"],
+                    "new_strategy": strategy,
                     "key": key,
                     "original_value": temp_plan_data[key]["value"],
                     "new_value": value,
                 }
-                conflicts.append(update)
-                # Remove the key from the plan_data...
-                if key in self.knowledge.plan_data:
-                    del self.knowledge.plan_data[key]
+                conflicts.append(conflict)
 
             # Otherwise, add the key to the plan_data...
             else:
                 temp_plan_data[key] = {"value": value, "strategy": strategy}
                 self.knowledge.plan_data[key] = value
+
+        # Once all conflicts have been noted, we have to remove all of the plan_data entries
+        # that were in conflict...
+        for conflict in conflicts:
+            if conflict["key"] in self.knowledge.plan_data:
+                del self.knowledge.plan_data[conflict["key"]]
         return conflicts
 
     def _perform_get_request(self, endpoint_suffix: "API Endpoint"):
-        url = '/'.join([self.exemplar.base_endpoint, endpoint_suffix])
+        url = '/'.join([self.base_endpoint, endpoint_suffix])
         response = get_response_for_get_request(url)
         if response.status_code == 404:
             logging.error("Please check that the endpoint you are trying to reach actually exists.")
@@ -161,7 +165,7 @@ class Exemplar(ABC):
         return response.json()
     
     def ping(self):
-        ping_res = self._perform_get_request(self.exemplar.base_endpoint)
+        ping_res = self._perform_get_request(self.base_endpoint)
         logging.info(f"ping result: {ping_res}")
 
     def start_container(self):

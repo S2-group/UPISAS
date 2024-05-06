@@ -19,7 +19,7 @@ class Strategy(ABC):
     def update_adaptation_data(self, key, value):
         """Handles the update of the knowledge object, while considering collisions."""
         update = {
-            "strategy": self.__class__.__name__,
+            "strategy": self,
             "key": key,
             "value": value
         }

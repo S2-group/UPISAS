@@ -34,3 +34,36 @@ class DemoExemplar(Exemplar):
             except ServerNotReachable as e:
                 pass
             sleep(1)
+
+
+# =================================================================================================
+# Fish Finder Exemplar
+class DemoFishFinderExemplar(Exemplar):
+    """
+    A class which encapsulates a self-adaptive exemplar run in a docker container.
+    """
+    def __init__(self, auto_start=False, container_name="upisas-ff-demo"):
+        docker_config = {
+            "name":  container_name,
+            "image": "joelmilligan/upisas-demo-managed-system",
+            "ports" : {3000: 3000}}
+
+        super().__init__("http://localhost:3000", docker_config, auto_start)
+
+    def start_run(self):
+        self.exemplar_container.exec_run(cmd = f' sh -c "cd /usr/src/app && node fish-finder.js" ', detach=True)
+
+    def stop_run(self):
+        self.stop_container(remove=False)
+
+    def stop_and_remove(self):
+        self.stop_container(remove=True)
+
+    def wait_for_server(self):
+        while True:
+            try:
+                get_response_for_get_request(self.base_endpoint)
+                break
+            except ServerNotReachable as e:
+                pass
+            sleep(1)
