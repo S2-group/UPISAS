@@ -5,6 +5,7 @@ from dataclasses import dataclass
 class Knowledge:
     monitored_data: dict
     analysis_data: dict
+    change_pipeline: list[dict]
     plan_data: dict
 
     adaptation_options: dict

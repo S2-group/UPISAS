@@ -3,8 +3,15 @@ from abc import ABC, abstractmethod
 from rich.progress import Progress
 from UPISAS import show_progress
 import logging
-from docker.errors import DockerException
-from UPISAS.exceptions import DockerImageNotFoundOnDockerHub
+from docker.errors import DockerException, APIError
+from UPISAS.exceptions import DockerImageNotFoundOnDockerHub, EndpointNotReachable
+from UPISAS.knowledge import Knowledge
+
+import requests
+
+from UPISAS import validate_schema, get_response_for_get_request
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -21,7 +28,9 @@ class Exemplar(ABC):
         '''Create an instance of the Exemplar class'''
         self.base_endpoint = base_endpoint
         image_name = docker_kwargs["image"]
+        self._container_name = docker_kwargs["name"]
         image_owner = image_name.split("/")[0]
+        self.knowledge = Knowledge(dict(), dict(), list(), dict(), dict(), dict(), dict(), dict())
         try:
             docker_client = docker.from_env()
             try:
@@ -38,8 +47,13 @@ class Exemplar(ABC):
                 else:
                     logging.error(f"image '{image_name}' not found on DockerHub, exiting!")
                     raise DockerImageNotFoundOnDockerHub
-            docker_kwargs["detach"] = True
-            self.exemplar_container = docker_client.containers.create(**docker_kwargs)
+            try:
+                self.exemplar_container = docker_client.containers.get(self._container_name)
+                logging.info(f"container '{self._container_name}' found locally")
+            except docker.errors.NotFound:
+                logging.info(f"container '{self._container_name}' not found locally")
+                docker_kwargs["detach"] = True
+                self.exemplar_container = docker_client.containers.create(**docker_kwargs)
         except DockerException as e:
             # TODO: Properly catch various errors. Currently, a lot of errors might be caught here.
             # Please check the logs if that happens.
@@ -50,6 +64,109 @@ class Exemplar(ABC):
     @abstractmethod
     def start_run(self):
         pass
+
+    def _append_data(self, fresh_data):
+        # recurse on list data
+        if isinstance(fresh_data, list):
+            for item in fresh_data:
+                self._append_data(item)
+        # append data instance to monitored data
+        else:
+            data = self.knowledge.monitored_data
+            for key in list(fresh_data.keys()):
+                if key not in data:
+                    data[key] = []
+                data[key].append(fresh_data[key])
+            print("[Knowledge]\tdata monitored so far: " + str(self.knowledge.monitored_data))
+        return True
+
+    # Monitor lives in the Exemplar class because it is the Exemplar that is responsible for
+    # interfacing with the monitored system.
+    def monitor(self, endpoint_suffix="monitor", with_validation=True):
+        fresh_data = self._perform_get_request(endpoint_suffix)
+        print("[Monitor]\tgot fresh_data: " + str(fresh_data))
+        if with_validation:
+            validate_schema(fresh_data, self.knowledge.monitor_schema)
+        self._append_data(fresh_data)
+        return True
+
+    # Similarly, execute also interfaces with the monitored system.
+    def execute(self, adaptation, endpoint_suffix="execute", with_validation=True):
+        if with_validation:
+            validate_schema(adaptation, self.knowledge.execute_schema)
+        url = '/'.join([self.base_endpoint, endpoint_suffix])
+        response = requests.put(url, json=adaptation)
+        print("[Execute]\tposted configuration: " + str(adaptation))
+        if response.status_code == 404:
+            logging.error("Cannot execute adaptation on remote system, check that the execute endpoint exists.")
+            raise EndpointNotReachable
+        return True
+    
+    def get_adaptation_options(self, endpoint_suffix: "API Endpoint" = "adaptation_options", with_validation=True):
+        self.knowledge.adaptation_options = self._perform_get_request(endpoint_suffix)
+        if with_validation:
+            validate_schema(self.knowledge.adaptation_options, self.knowledge.adaptation_options_schema)
+        logging.info("adaptation_options set to: ")
+        pp.pprint(self.knowledge.adaptation_options)
+
+    def get_monitor_schema(self, endpoint_suffix = "monitor_schema"):
+        self.knowledge.monitor_schema = self._perform_get_request(endpoint_suffix)
+        logging.info("monitor_schema set to: ")
+        pp.pprint(self.knowledge.monitor_schema)
+
+    def get_execute_schema(self, endpoint_suffix = "execute_schema"):
+        self.knowledge.execute_schema = self._perform_get_request(endpoint_suffix)
+        logging.info("execute_schema set to: ")
+        pp.pprint(self.knowledge.execute_schema)
+
+    def get_adaptation_options_schema(self, endpoint_suffix: "API Endpoint" = "adaptation_options_schema"):
+        self.knowledge.adaptation_options_schema = self._perform_get_request(endpoint_suffix)
+        logging.info("adaptation_options_schema set to: ")
+        pp.pprint(self.knowledge.adaptation_options_schema)
+
+    def check_for_update_conflicts(self):
+        """Examines knowledge.change_pipeline and returns conflicts if any exist.
+        Non-conflicting changes are placed into knowledge.plan_data."""
+        conflicts = []
+        temp_plan_data = {}
+        for update in self.knowledge.change_pipeline:
+            key = update["key"]
+            value = update["value"]
+            strategy = update["strategy"]
+            # If the value is already in the plan_data, we've found a conflict...
+            if key in temp_plan_data:
+                conflict = {
+                    "original_strategy": temp_plan_data[key]["strategy"],
+                    "new_strategy": strategy,
+                    "key": key,
+                    "original_value": temp_plan_data[key]["value"],
+                    "new_value": value,
+                }
+                conflicts.append(conflict)
+
+            # Otherwise, add the key to the plan_data...
+            else:
+                temp_plan_data[key] = {"value": value, "strategy": strategy}
+                self.knowledge.plan_data[key] = value
+
+        # Once all conflicts have been noted, we have to remove all of the plan_data entries
+        # that were in conflict...
+        for conflict in conflicts:
+            if conflict["key"] in self.knowledge.plan_data:
+                del self.knowledge.plan_data[conflict["key"]]
+        return conflicts
+
+    def _perform_get_request(self, endpoint_suffix: "API Endpoint"):
+        url = '/'.join([self.base_endpoint, endpoint_suffix])
+        response = get_response_for_get_request(url)
+        if response.status_code == 404:
+            logging.error("Please check that the endpoint you are trying to reach actually exists.")
+            raise EndpointNotReachable
+        return response.json()
+    
+    def ping(self):
+        ping_res = self._perform_get_request(self.base_endpoint)
+        logging.info(f"ping result: {ping_res}")
 
     def start_container(self):
         '''Starts running the docker container made from the given image when constructing this class'''
