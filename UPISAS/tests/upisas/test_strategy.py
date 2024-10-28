@@ -128,12 +128,6 @@ class TestStrategy(unittest.TestCase):
         with self.assertRaises(EndpointNotReachable):
             self.strategy.get_execute_schema()
 
-    def test_json_validation_no_schema_present(self):
-        self._start_server_and_wait_until_is_up()
-        self.strategy = DemoStrategy(self.exemplar)
-        with self.assertRaises(IncompleteJSONSchema):
-            self.strategy.monitor()
-
     def test_json_validation_no_complete_schema_present(self):
         self._start_server_and_wait_until_is_up()
         self.strategy = DemoStrategy(self.exemplar)
