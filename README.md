@@ -22,4 +22,14 @@ In a terminal, navigate to the parent folder of the project and issue:
 python run.py
 ```
 
+### Using experiment runner 
+
+```
+cd experiment-runner
+git submodule update --init --recursive
+pip install -r requirements.txt
+cd ..
+sh run.sh 
+```
+
 
