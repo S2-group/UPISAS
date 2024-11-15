@@ -22,49 +22,49 @@ class TestStrategy(unittest.TestCase):
             self.exemplar.stop_container()
 
     def test_get_adaptation_options_successfully(self):
-        self.strategy.get_adaptation_options(with_validation=False)
-        self.assertIsNotNone(self.strategy.knowledge.adaptation_options)
+        self.exemplar.get_adaptation_options(with_validation=False)
+        self.assertIsNotNone(self.exemplar.knowledge.adaptation_options)
 
     def test_monitor_successfully(self):
         successful = self.strategy.monitor(with_validation=False)
         self.assertTrue(successful)
-        self.assertNotEqual(self.strategy.knowledge.monitored_data, dict())
+        self.assertNotEqual(self.exemplar.knowledge.monitored_data, dict())
 
     def test_execute_successfully(self):
-        successful = self.strategy.execute({"server_number": 2, "dimmer_factor": 0.5}, with_validation=False)
+        successful = self.exemplar.execute({"server_number": 2, "dimmer_factor": 0.5}, with_validation=False)
         self.assertTrue(successful)
 
     def test_adaptation_options_schema_endpoint_reachable(self):
-        self.strategy.get_adaptation_options_schema()
-        self.assertIsNotNone(self.strategy.knowledge.adaptation_options_schema)
+        self.exemplar.get_adaptation_options_schema()
+        self.assertIsNotNone(self.exemplar.knowledge.adaptation_options_schema)
 
     def test_monitor_schema_endpoint_reachable(self):
-        self.strategy.get_monitor_schema()
-        self.assertIsNotNone(self.strategy.knowledge.monitor_schema)
+        self.exemplar.get_monitor_schema()
+        self.assertIsNotNone(self.exemplar.knowledge.monitor_schema)
 
     def test_execute_schema_endpoint_reachable(self):
-        self.strategy.get_execute_schema()
-        self.assertIsNotNone(self.strategy.knowledge.execute_schema)
+        self.exemplar.get_execute_schema()
+        self.assertIsNotNone(self.exemplar.knowledge.execute_schema)
 
     def test_schema_of_adaptation_options(self):
-        self.strategy.get_adaptation_options_schema()
+        self.exemplar.get_adaptation_options_schema()
         with self.assertLogs() as cm:
-            self.strategy.get_adaptation_options()
+            self.exemplar.get_adaptation_options()
             self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
-        self.assertIsNotNone(self.strategy.knowledge.adaptation_options)
+        self.assertIsNotNone(self.exemplar.knowledge.adaptation_options)
 
     def test_schema_of_monitor(self):
-        self.strategy.get_monitor_schema()
+        self.exemplar.get_monitor_schema()
         with self.assertLogs() as cm:
-            successful = self.strategy.monitor()
+            successful = self.exemplar.monitor()
             self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertTrue(successful)
-        self.assertNotEqual(self.strategy.knowledge.monitored_data, dict())
+        self.assertNotEqual(self.exemplar.knowledge.monitored_data, dict())
 
     def test_schema_of_execute(self):
-        self.strategy.get_execute_schema()
+        self.exemplar.get_execute_schema()
         with self.assertLogs() as cm:
-            successful = self.strategy.execute({"server_number": 2, "dimmer_factor": 0.5})
+            successful = self.exemplar.execute({"server_number": 2, "dimmer_factor": 0.5})
             self.assertTrue("JSON object validated by JSON Schema" in ", ".join(cm.output))
         self.assertTrue(successful)
 
