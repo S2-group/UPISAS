@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import requests
 import pprint
+import json
 
 from UPISAS.exceptions import EndpointNotReachable, ServerNotReachable
 from UPISAS.knowledge import Knowledge
@@ -22,7 +23,7 @@ class Strategy(ABC):
 
     def monitor(self, endpoint_suffix="monitor", with_validation=True, verbose=False):
         fresh_data = self._perform_get_request(endpoint_suffix)
-        if(verbose): print("[Monitor]\tgot fresh_data: " + str(fresh_data))
+        if(verbose): print("[Monitor]\tgot fresh_data:\n " + json.dumps(fresh_data, indent=2))
         if with_validation:
             if(not self.knowledge.monitor_schema): self.get_monitor_schema()
             validate_schema(fresh_data, self.knowledge.monitor_schema)
@@ -31,7 +32,7 @@ class Strategy(ABC):
             if key not in data:
                 data[key] = []
             data[key].append(fresh_data[key])
-        if(verbose): print("[Knowledge]\tdata monitored so far: " + str(self.knowledge.monitored_data))
+        if(verbose): print("[Knowledge]\tdata monitored so far:\n " + json.dumps(self.knowledge.monitored_data, indent=2))
         return True
 
     def execute(self, adaptation=None, endpoint_suffix="execute", with_validation=True):
@@ -53,22 +54,22 @@ class Strategy(ABC):
             if(not self.knowledge.adaptation_options_schema): self.get_adaptation_options_schema()
             validate_schema(self.knowledge.adaptation_options, self.knowledge.adaptation_options_schema)
         logging.info("adaptation_options set to: ")
-        pp.pprint(self.knowledge.adaptation_options)
+        print(json.dumps(self.knowledge.adaptation_options, indent=2))
 
     def get_monitor_schema(self, endpoint_suffix = "monitor_schema"):
         self.knowledge.monitor_schema = self._perform_get_request(endpoint_suffix)
         logging.info("monitor_schema set to: ")
-        pp.pprint(self.knowledge.monitor_schema)
+        print(json.dumps(self.knowledge.monitor_schema, indent=2))
 
     def get_execute_schema(self, endpoint_suffix = "execute_schema"):
         self.knowledge.execute_schema = self._perform_get_request(endpoint_suffix)
         logging.info("execute_schema set to: ")
-        pp.pprint(self.knowledge.execute_schema)
+        print(json.dumps(self.knowledge.execute_schema, indent=2))
 
     def get_adaptation_options_schema(self, endpoint_suffix: "API Endpoint" = "adaptation_options_schema"):
         self.knowledge.adaptation_options_schema = self._perform_get_request(endpoint_suffix)
         logging.info("adaptation_options_schema set to: ")
-        pp.pprint(self.knowledge.adaptation_options_schema)
+        print(json.dumps(self.knowledge.adaptation_options_schema, indent=2))
 
     def _perform_get_request(self, endpoint_suffix: "API Endpoint"):
         url = '/'.join([self.exemplar.base_endpoint, endpoint_suffix])
@@ -87,4 +88,3 @@ class Strategy(ABC):
     def plan(self):
         """ ... """
         pass
-
