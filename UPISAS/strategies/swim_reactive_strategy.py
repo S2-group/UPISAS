@@ -10,9 +10,8 @@ class ReactiveAdaptationManager(Strategy):
 
     def analyze(self):
         data = self.knowledge.monitored_data
-        print(data)
         self.knowledge.analysis_data["server_booting"] = data["servers"] > data["active_servers"]
-        
+
         self.knowledge.analysis_data["spare_utilization"] = sum([server["utilization_value"] for server in data["utilization"][-1]])
         self.knowledge.analysis_data["rt_sufficient"] = False
         self.knowledge.analysis_data["dimmer_at_min"] = data["dimmer_factor"][-1] < self.DIMMER_MARGIN
@@ -24,10 +23,9 @@ class ReactiveAdaptationManager(Strategy):
         if(data["basic_rt"][-1] > self.RT_THRESHOLD):
             return True
         elif(data["basic_rt"][-1] < self.RT_THRESHOLD):
-
             self.knowledge.analysis_data["rt_sufficient"] = True
             return True
-        
+
         return False
 
 
@@ -54,5 +52,5 @@ class ReactiveAdaptationManager(Strategy):
                 self.knowledge.plan_data["dimmer_factor"] = self.knowledge.analysis_data["current_dimmer"] - self.DIMMER_MARGIN
                 self.knowledge.plan_data["server_number"] = self.knowledge.analysis_data["current_servers"]
                 return True
-            
+
         return False

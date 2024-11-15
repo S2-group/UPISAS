@@ -27,7 +27,12 @@ if __name__ == '__main__':
                     strategy.execute()
             
     except (Exception, KeyboardInterrupt) as e:
-        print(str(e))
-        input("something went wrong")
+        exit_code = 0
+        if (isinstance(e, Exception)):
+          # Exception occurred
+          print("\nSomething went wrong: {e}")
+          exit_code = 1
+
+        print("\nQuiting UPISAS, waiting for container to terminate...")
         exemplar.stop_container()
-        sys.exit(0)
+        sys.exit(exit_code)
